@@ -1,0 +1,61 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+
+packages:
+  - docker.io
+  - caddy
+
+write_files:
+  - path: /etc/default/${project_name}
+    permissions: "0640"
+    owner: root:root
+    content: |
+      NODE_ENV=production
+      PORT=${server_port}
+      CORS_ORIGIN=${cors_origin}
+
+  - path: /etc/systemd/system/${project_name}.service
+    permissions: "0644"
+    owner: root:root
+    content: |
+      [Unit]
+      Description=${project_name} game server container
+      After=network-online.target docker.service
+      Wants=network-online.target
+      Requires=docker.service
+
+      [Service]
+      Type=simple
+      ExecStartPre=-/usr/bin/docker rm -f ${project_name}-server
+      ExecStartPre=/usr/bin/docker pull ${server_image}
+      ExecStart=/usr/bin/docker run --name ${project_name}-server --rm --pull never --env-file /etc/default/${project_name} -p 127.0.0.1:${server_port}:${server_port} ${server_image}
+      ExecStop=/usr/bin/docker stop ${project_name}-server
+      Restart=always
+      RestartSec=5
+
+      [Install]
+      WantedBy=multi-user.target
+
+  - path: /etc/caddy/Caddyfile
+    permissions: "0644"
+    owner: root:root
+    content: |
+%{ if domain_enabled ~}
+      ${api_domain} {
+          encode gzip
+          reverse_proxy 127.0.0.1:${server_port}
+      }
+%{ else ~}
+      :80 {
+          encode gzip
+          reverse_proxy 127.0.0.1:${server_port}
+      }
+%{ endif ~}
+
+runcmd:
+  - systemctl daemon-reload
+  - systemctl enable --now docker
+  - systemctl enable caddy
+  - systemctl restart caddy
+  - systemctl enable --now ${project_name}.service

@@ -54,7 +54,7 @@ app.get(
   }),
 );
 
-const port = parseInt(process.env.PORT ?? "3001", 10);
+const port = parseInt(process.env.PORT ?? "3000", 10);
 
 const server = serve({ fetch: app.fetch, port }, () => {
   console.log(`Ambotrope server running on http://localhost:${port}`);

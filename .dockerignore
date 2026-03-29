@@ -1,0 +1,12 @@
+node_modules
+.git
+.DS_Store
+coverage
+dist
+playwright-report
+test-results
+terraform.tfstate
+terraform.tfstate.*
+**/.terraform
+**/node_modules
+**/dist

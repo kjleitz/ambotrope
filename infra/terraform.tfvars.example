@@ -1,0 +1,14 @@
+aws_region            = "us-east-1"
+project_name          = "ambotrope"
+environment           = "production"
+domain_name           = "ambotrope.com"
+domain_enabled        = false
+availability_zone     = "us-east-1a"
+instance_bundle_id    = "nano_3_0"
+instance_blueprint_id = "ubuntu_24_04"
+ssh_key_pair_name     = "your-lightsail-keypair"
+server_image          = "ghcr.io/your-org/ambotrope-server:latest"
+cors_origin           = "https://www.ambotrope.com"
+
+# Tighten this before production if you have a stable office/VPN IP.
+ssh_allowed_cidrs = ["0.0.0.0/0"]

@@ -1,0 +1,32 @@
+{
+  "name": "@ambotrope/web",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed"
+  },
+  "dependencies": {
+    "@ambotrope/game": "workspace:*",
+    "@ambotrope/grid": "workspace:*",
+    "@ambotrope/noise": "workspace:*",
+    "@ambotrope/protocol": "workspace:*",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-router-dom": "^7.13.1",
+    "tailwindcss": "^4.2.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.2.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.0",
+    "@playwright/test": "^1.58.2",
+    "typescript": "^5.7.0",
+    "vite": "^8.0.0"
+  }
+}

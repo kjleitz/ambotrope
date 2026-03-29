@@ -1,0 +1,206 @@
+import { useState } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
+import { useGameSocket } from "@/lib/useGameSocket.ts";
+import { GameCanvas } from "@/components/GameCanvas.tsx";
+import { WordSelector } from "@/components/WordSelector.tsx";
+import { PlayerPanel } from "@/components/PlayerPanel.tsx";
+import { PhaseBar } from "@/components/PhaseBar.tsx";
+import { RoundResult } from "@/components/RoundResult.tsx";
+
+export function GamePage() {
+  const { gameId } = useParams<{ gameId: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const playerName = searchParams.get("name");
+  const [nameInput, setNameInput] = useState("");
+
+  const {
+    gameView,
+    connected,
+    error,
+    messages,
+    selectTile,
+    selectWords,
+    lockIn,
+    ready,
+  } = useGameSocket(gameId!, playerName);
+
+  if (!playerName) {
+    function handleJoin() {
+      if (!nameInput.trim()) return;
+      setSearchParams({ name: nameInput.trim() });
+    }
+
+    return (
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div
+          className="flex flex-col gap-5 p-8 rounded-2xl w-full max-w-sm"
+          style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
+        >
+          <div className="flex flex-col gap-1">
+            <h1 className="text-xl font-bold">Join Game</h1>
+            <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
+              Enter your name to join game <span className="font-mono">{gameId}</span>
+            </p>
+          </div>
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium">Your name</label>
+            <input
+              type="text"
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") handleJoin(); }}
+              placeholder="Enter your name"
+              maxLength={30}
+              autoFocus
+              className="px-3 py-2 rounded-lg text-sm outline-none"
+              style={{ background: "var(--color-surface-alt)", border: "1px solid var(--color-border)" }}
+            />
+          </div>
+          <button
+            onClick={handleJoin}
+            disabled={!nameInput.trim()}
+            className="px-4 py-2.5 rounded-lg font-medium text-white transition-colors"
+            style={{
+              background: nameInput.trim() ? "var(--color-primary)" : "var(--color-text-muted)",
+              cursor: nameInput.trim() ? "pointer" : "not-allowed",
+            }}
+          >
+            Join Game
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!gameView) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-4">
+          {error ? (
+            <>
+              <div
+                className="p-4 rounded-lg text-sm max-w-sm text-center"
+                style={{ background: "var(--color-danger)", color: "white" }}
+              >
+                {error}
+              </div>
+              <a
+                href="/"
+                className="text-sm underline"
+                style={{ color: "var(--color-text-muted)" }}
+              >
+                Back to home
+              </a>
+            </>
+          ) : (
+            <div style={{ color: "var(--color-text-muted)" }}>
+              {connected ? "Waiting for game state..." : "Connecting..."}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  const phase = gameView.phase;
+  const canSelectTile = phase === "selecting" && !gameView.self.lockedIn;
+  const canSelectWords = phase === "selecting" && !gameView.self.lockedIn;
+  const showLockIn = phase === "selecting" && !gameView.self.lockedIn;
+
+  return (
+    <div className="flex-1 flex flex-col h-dvh">
+      {/* Phase bar */}
+      <div className="p-3">
+        <PhaseBar
+          phase={phase}
+          round={gameView.round}
+          onReady={phase === "reveal" ? ready : undefined}
+          onLockIn={showLockIn ? lockIn : undefined}
+        />
+      </div>
+
+      {/* Main area */}
+      <div className="flex-1 flex min-h-0">
+        {/* Canvas */}
+        <div className="flex-1 p-3 pt-0">
+          <div
+            className="w-full h-full rounded-xl overflow-hidden"
+            style={{ border: "1px solid var(--color-border)" }}
+          >
+            <GameCanvas
+              gameView={gameView}
+              onTileClick={selectTile}
+              interactive={canSelectTile}
+            />
+          </div>
+        </div>
+
+        {/* Sidebar */}
+        <div
+          className="w-72 flex flex-col gap-3 p-3 pt-0 overflow-y-auto"
+        >
+          {/* Game link when waiting for players */}
+          {phase === "selecting" && gameView.others.length === 0 && (
+            <div
+              className="flex flex-col gap-1 p-3 rounded-lg"
+              style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
+            >
+              <div className="text-xs font-medium" style={{ color: "var(--color-text-muted)" }}>
+                Share this link
+              </div>
+              <div
+                className="text-xs px-2 py-1.5 rounded font-mono select-all break-all"
+                style={{ background: "var(--color-surface-alt)" }}
+              >
+                {window.location.origin}/game/{gameId}
+              </div>
+            </div>
+          )}
+
+          {/* Error display */}
+          {error && (
+            <div
+              className="p-3 rounded-lg text-sm"
+              style={{ background: "var(--color-danger)", color: "white" }}
+            >
+              {error}
+            </div>
+          )}
+
+          {/* Player panel */}
+          <PlayerPanel gameView={gameView} />
+
+          {/* Round result */}
+          {phase === "reveal" && (
+            <RoundResult gameView={gameView} messages={messages} />
+          )}
+
+          {/* Word selector */}
+          {phase === "selecting" && (
+            <div
+              className="p-3 rounded-lg"
+              style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
+            >
+              <WordSelector
+                wordList={gameView.config.wordList}
+                maxWords={gameView.config.maxWordsPerPlayer}
+                selectedWords={gameView.self.selectedWords}
+                onToggle={selectWords}
+                disabled={!canSelectWords}
+              />
+            </div>
+          )}
+
+          {/* Connection status */}
+          <div className="flex items-center gap-1.5 text-xs" style={{ color: "var(--color-text-muted)" }}>
+            <span
+              className="w-2 h-2 rounded-full"
+              style={{ background: connected ? "var(--color-success)" : "var(--color-danger)" }}
+            />
+            {connected ? "Connected" : "Disconnected"}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

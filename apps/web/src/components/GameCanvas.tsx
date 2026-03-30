@@ -23,6 +23,9 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
   const [initialized, setInitialized] = useState(false);
   const [cloudParams, setCloudParams] = useState<CloudParams>(defaultCloudParams);
   const [debugOpen, setDebugOpen] = useState(false);
+  const [seedOverride, setSeedOverride] = useState<number | null>(null);
+
+  const activeSeed = seedOverride ?? gameView.config.seed;
 
   // Initialize render state when tile IDs or seed change
   useEffect(() => {
@@ -36,7 +39,7 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
 
     let state = createRenderState(
       gameView.tileIds,
-      gameView.config.seed,
+      activeSeed,
       canvas.width,
       canvas.height,
       cloudParams.strategy,
@@ -44,7 +47,7 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
     state = generateCloudTexture(state, cloudParams);
     renderStateRef.current = state;
     setInitialized(true);
-  }, [gameView.tileIds, gameView.config.seed, cloudParams]);
+  }, [gameView.tileIds, activeSeed, cloudParams]);
 
   // Render on every relevant change
   useEffect(() => {
@@ -96,9 +99,8 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
       const canvas = canvasRef.current;
       if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
-      const x = (e.clientX - rect.left) * dpr;
-      const y = (e.clientY - rect.top) * dpr;
+      const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+      const y = (e.clientY - rect.top) * (canvas.height / rect.height);
 
       const tile = hitTestTile(state, x, y);
       setHoveredTile(tile);
@@ -115,9 +117,8 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
       const canvas = canvasRef.current;
       if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
-      const x = (e.clientX - rect.left) * dpr;
-      const y = (e.clientY - rect.top) * dpr;
+      const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+      const y = (e.clientY - rect.top) * (canvas.height / rect.height);
 
       const tile = hitTestTile(state, x, y);
       if (tile) onTileClick(tile);
@@ -216,7 +217,7 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
               />
             </div>
             <button
-              onClick={() => setCloudParams(defaultCloudParams)}
+              onClick={() => { setCloudParams(defaultCloudParams); setSeedOverride(null); }}
               className="px-2 py-1 rounded text-xs"
               style={{
                 background: "oklch(0.3 0 0 / 0.6)",
@@ -225,6 +226,37 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
             >
               Reset
             </button>
+            <div
+              className="border-t pt-2 mt-1 flex flex-col gap-1"
+              style={{ borderColor: "oklch(0.4 0 0 / 0.3)" }}
+            >
+              <label className="flex justify-between">
+                <span>Seed</span>
+                <span className="select-all">{activeSeed}</span>
+              </label>
+              <div className="flex gap-1">
+                <button
+                  onClick={() => setSeedOverride(activeSeed - 1)}
+                  className="flex-1 px-2 py-1 rounded text-xs"
+                  style={{
+                    background: "oklch(0.3 0 0 / 0.6)",
+                    border: "1px solid oklch(0.4 0 0 / 0.5)",
+                  }}
+                >
+                  Prev
+                </button>
+                <button
+                  onClick={() => setSeedOverride(activeSeed + 1)}
+                  className="flex-1 px-2 py-1 rounded text-xs"
+                  style={{
+                    background: "oklch(0.3 0 0 / 0.6)",
+                    border: "1px solid oklch(0.4 0 0 / 0.5)",
+                  }}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

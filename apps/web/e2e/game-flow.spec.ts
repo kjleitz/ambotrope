@@ -45,8 +45,8 @@ async function bothSelectTilesAndWords(alice: Page, bob: Page) {
   await clickTile(bob, 60, 0);
   await expect(bob.getByText("Tile selected")).toBeVisible({ timeout: 3000 });
 
-  await alice.getByRole("button", { name: "Dog" }).click();
-  await bob.getByRole("button", { name: "Cat" }).click();
+  await alice.getByRole("button", { name: "Batman" }).click();
+  await bob.getByRole("button", { name: "Maraca" }).click();
 }
 
 async function bothLockIn(alice: Page, bob: Page) {
@@ -91,9 +91,9 @@ test.describe("single player start", () => {
     await clickTile(page, 0, 0);
     await expect(page.getByText("Tile selected")).toBeVisible({ timeout: 3000 });
 
-    await page.getByRole("button", { name: "Dog" }).click();
+    await page.getByRole("button", { name: "Batman" }).click();
     const selfCard = page.locator(".rounded-lg").filter({ hasText: "You" });
-    await expect(selfCard.locator("span.rounded-full", { hasText: "Dog" })).toBeVisible();
+    await expect(selfCard.locator("span.rounded-full", { hasText: "Batman" })).toBeVisible();
   });
 
   test("both players in selecting when second joins", async ({ page, context }) => {
@@ -123,36 +123,36 @@ test.describe("selecting phase", () => {
     const { alice } = await setupTwoPlayerGame(page, context);
 
     await expect(alice.getByText("Select up to", { exact: false })).toBeVisible();
-    await expect(alice.getByRole("button", { name: "Dog" })).toBeVisible();
+    await expect(alice.getByRole("button", { name: "Batman" })).toBeVisible();
   });
 
   test("can select words before selecting a tile", async ({ page, context }) => {
     const { alice } = await setupTwoPlayerGame(page, context);
 
-    await alice.getByRole("button", { name: "Dog" }).click();
+    await alice.getByRole("button", { name: "Batman" }).click();
 
     const selfCard = alice.locator(".rounded-lg").filter({ hasText: "You" });
-    await expect(selfCard.locator("span.rounded-full", { hasText: "Dog" })).toBeVisible();
+    await expect(selfCard.locator("span.rounded-full", { hasText: "Batman" })).toBeVisible();
   });
 
   test("can select words and they appear on player card", async ({ page, context }) => {
     const { alice } = await setupTwoPlayerGame(page, context);
 
-    await alice.getByRole("button", { name: "Dog" }).click();
-    await alice.getByRole("button", { name: "Star" }).click();
+    await alice.getByRole("button", { name: "Batman" }).click();
+    await alice.getByRole("button", { name: "Ball" }).click();
 
     const selfCard = alice.locator(".rounded-lg").filter({ hasText: "You" });
-    await expect(selfCard.locator("span.rounded-full", { hasText: "Dog" })).toBeVisible();
-    await expect(selfCard.locator("span.rounded-full", { hasText: "Star" })).toBeVisible();
+    await expect(selfCard.locator("span.rounded-full", { hasText: "Batman" })).toBeVisible();
+    await expect(selfCard.locator("span.rounded-full", { hasText: "Ball" })).toBeVisible();
   });
 
   test("other player's words appear in real time", async ({ page, context }) => {
     const { alice, bob } = await setupTwoPlayerGame(page, context);
 
-    await bob.getByRole("button", { name: "Cat" }).click();
+    await bob.getByRole("button", { name: "Maraca" }).click();
 
     const bobCard = alice.locator(".rounded-lg").filter({ hasText: "Bob" });
-    await expect(bobCard.locator("span.rounded-full", { hasText: "Cat" })).toBeVisible({ timeout: 3000 });
+    await expect(bobCard.locator("span.rounded-full", { hasText: "Maraca" })).toBeVisible({ timeout: 3000 });
   });
 });
 

@@ -13,7 +13,7 @@ describe("clientMessageSchema", () => {
   });
 
   it("parses select_words message", () => {
-    const msg = { type: "select_words", payload: { words: ["Dog", "Cat"] } };
+    const msg = { type: "select_words", payload: { words: ["Batman", "Maraca"] } };
     expect(clientMessageSchema.parse(msg)).toEqual(msg);
   });
 
@@ -55,7 +55,7 @@ describe("serverMessageSchema", () => {
         config: {
           playerCount: 3,
           tileMultiplier: 2.5,
-          wordList: ["Dog"],
+          wordList: ["Batman"],
           seed: 42,
           maxWordsPerPlayer: 3,
         },

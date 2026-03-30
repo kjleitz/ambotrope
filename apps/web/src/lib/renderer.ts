@@ -4,9 +4,27 @@ import {
   SimplexNoiseGenerator,
   VertexProximityBias,
   createNoiseField,
+  createInkBlotField,
   seededRandom,
 } from "@ambotrope/noise";
-import type { NoiseField } from "@ambotrope/noise";
+import type { NoiseField, CloudStrategy } from "@ambotrope/noise";
+
+export type { CloudStrategy } from "@ambotrope/noise";
+
+export interface CloudParams {
+  /** Cloud generation strategy */
+  strategy: CloudStrategy;
+  /** Number of discrete grayscale levels (2 = black/white, 8 = smooth posterization). 0 = continuous (no posterization). */
+  levels: number;
+  /** Edge sharpness. 1 = default soft clouds, higher = sharper edges. Range: 0.1–20. */
+  sharpness: number;
+}
+
+export const defaultCloudParams: CloudParams = {
+  strategy: "ink-blot",
+  levels: 2,
+  sharpness: 3,
+};
 
 export interface RenderState {
   gameGrid: GameGrid;
@@ -24,16 +42,25 @@ export function createRenderState(
   seed: number,
   canvasWidth: number,
   canvasHeight: number,
+  strategy: CloudStrategy = "noise-bias",
 ): RenderState {
   const hexSize = 50;
   const gameGrid = createGameGrid({ tileCount: tileIds.length, hexSize });
 
   const vertices = getAllVertices(gameGrid);
-  const noiseField = createNoiseField({
-    generator: new SimplexNoiseGenerator(seededRandom(seed)),
-    bias: new VertexProximityBias(hexSize * 1.5, 0.7),
-    vertices,
-  });
+  const generator = new SimplexNoiseGenerator(seededRandom(seed));
+
+  const noiseField = strategy === "ink-blot"
+    ? createInkBlotField({
+        generator,
+        vertices,
+        blobRadius: hexSize * 1.5,
+      })
+    : createNoiseField({
+        generator,
+        bias: new VertexProximityBias(hexSize * 1.5, 0.7),
+        vertices,
+      });
 
   // Calculate bounds to center the grid
   const allPoints = tileIds.flatMap((id) => getTileVertices(gameGrid, id));
@@ -46,10 +73,14 @@ export function createRenderState(
   const gridWidth = maxX - minX;
   const gridHeight = maxY - minY;
 
-  const padding = hexSize * 2;
-  const scaleX = canvasWidth / (gridWidth + padding * 2);
-  const scaleY = canvasHeight / (gridHeight + padding * 2);
-  const scale = Math.min(scaleX, scaleY, 2.5);
+  // 0.5 hex-width margin on left/right, 0.5 hex-height margin on top/bottom
+  const hexWidth = hexSize * 2;
+  const hexHeight = hexSize * Math.sqrt(3);
+  const paddingX = hexWidth * 0.5;
+  const paddingY = hexHeight * 0.5;
+  const scaleX = canvasWidth / (gridWidth + paddingX * 2);
+  const scaleY = canvasHeight / (gridHeight + paddingY * 2);
+  const scale = Math.min(scaleX, scaleY);
 
   const offsetX = canvasWidth / 2 - ((minX + maxX) / 2) * scale;
   const offsetY = canvasHeight / 2 - ((minY + maxY) / 2) * scale;
@@ -66,7 +97,7 @@ export function createRenderState(
   };
 }
 
-export function generateCloudTexture(state: RenderState): RenderState {
+export function generateCloudTexture(state: RenderState, params: CloudParams = defaultCloudParams): RenderState {
   const { noiseField, canvasWidth, canvasHeight, offsetX, offsetY, scale } = state;
   const offscreen = new OffscreenCanvas(canvasWidth, canvasHeight);
   const ctx = offscreen.getContext("2d");
@@ -76,29 +107,53 @@ export function generateCloudTexture(state: RenderState): RenderState {
   const imageData = ctx.createImageData(canvasWidth, canvasHeight);
   const data = imageData.data;
 
-  // Sample noise at multiple octaves for richer clouds
+  const { strategy, levels, sharpness } = params;
+  const isInkBlot = strategy === "ink-blot";
+
   for (let py = 0; py < canvasHeight; py += resolution) {
     for (let px = 0; px < canvasWidth; px += resolution) {
       // Convert pixel to world coordinates
       const wx = (px - offsetX) / scale;
       const wy = (py - offsetY) / scale;
 
-      // Multi-octave sampling
-      const freq1 = 0.008;
-      const freq2 = 0.02;
-      const freq3 = 0.05;
+      let cloudAlpha: number;
 
-      const n1 = noiseField.sample(wx * freq1, wy * freq1);
-      const n2 = noiseField.sample(wx * freq2, wy * freq2) * 0.4;
-      const n3 = noiseField.sample(wx * freq3, wy * freq3) * 0.15;
+      if (isInkBlot) {
+        // Ink blots: sample at native coordinates — the field is already shaped
+        const value = noiseField.sample(wx, wy);
+        const threshold = 0.05;
+        cloudAlpha = value > threshold
+          ? Math.min(1, (value - threshold) / (1 - threshold))
+          : 0;
+      } else {
+        // Noise + bias: multi-octave sampling for richer clouds
+        const freq1 = 0.008;
+        const freq2 = 0.02;
+        const freq3 = 0.05;
 
-      const combined = Math.max(0, Math.min(1, n1 + n2 + n3));
+        const n1 = noiseField.sample(wx * freq1, wy * freq1);
+        const n2 = noiseField.sample(wx * freq2, wy * freq2) * 0.4;
+        const n3 = noiseField.sample(wx * freq3, wy * freq3) * 0.15;
 
-      // Cloud threshold — values above this appear as clouds
-      const threshold = 0.45;
-      const cloudAlpha = combined > threshold
-        ? Math.min(1, (combined - threshold) / (1 - threshold) * 1.5)
-        : 0;
+        const combined = Math.max(0, Math.min(1, n1 + n2 + n3));
+
+        const threshold = 0.45;
+        cloudAlpha = combined > threshold
+          ? Math.min(1, (combined - threshold) / (1 - threshold) * 1.5)
+          : 0;
+      }
+
+      // Sharpness: raise alpha to a power to steepen the edge curve.
+      // >1 = sharper edges, <1 = even softer than default.
+      if (sharpness !== 1 && cloudAlpha > 0) {
+        cloudAlpha = Math.pow(cloudAlpha, sharpness);
+      }
+
+      // Posterization: quantize to discrete levels.
+      // levels=2 → black/white, levels=3 → black/gray/white, etc.
+      if (levels >= 2) {
+        cloudAlpha = Math.round(cloudAlpha * (levels - 1)) / (levels - 1);
+      }
 
       // Fill resolution x resolution block
       for (let dy = 0; dy < resolution && py + dy < canvasHeight; dy++) {

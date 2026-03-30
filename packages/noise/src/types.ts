@@ -32,3 +32,5 @@ export interface NoiseField {
     offsetY?: number,
   ): Float32Array;
 }
+
+export type CloudStrategy = "noise-bias" | "ink-blot";

@@ -6,8 +6,9 @@ import {
   generateCloudTexture,
   renderFrame,
   hitTestTile,
+  defaultCloudParams,
 } from "@/lib/renderer.ts";
-import type { RenderState, TileRenderInfo } from "@/lib/renderer.ts";
+import type { RenderState, TileRenderInfo, CloudParams, CloudStrategy } from "@/lib/renderer.ts";
 
 interface GameCanvasProps {
   gameView: PlayerView;
@@ -20,6 +21,8 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
   const renderStateRef = useRef<RenderState | null>(null);
   const [hoveredTile, setHoveredTile] = useState<TileId | null>(null);
   const [initialized, setInitialized] = useState(false);
+  const [cloudParams, setCloudParams] = useState<CloudParams>(defaultCloudParams);
+  const [debugOpen, setDebugOpen] = useState(false);
 
   // Initialize render state when tile IDs or seed change
   useEffect(() => {
@@ -36,11 +39,12 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
       gameView.config.seed,
       canvas.width,
       canvas.height,
+      cloudParams.strategy,
     );
-    state = generateCloudTexture(state);
+    state = generateCloudTexture(state, cloudParams);
     renderStateRef.current = state;
     setInitialized(true);
-  }, [gameView.tileIds, gameView.config.seed]);
+  }, [gameView.tileIds, gameView.config.seed, cloudParams]);
 
   // Render on every relevant change
   useEffect(() => {
@@ -81,7 +85,7 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
     }));
 
     renderFrame(ctx, state, tiles);
-  }, [gameView, hoveredTile, interactive, initialized]);
+  }, [gameView, hoveredTile, interactive, initialized, cloudParams]);
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -123,13 +127,107 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
 
   const handleMouseLeave = useCallback(() => setHoveredTile(null), []);
 
+  const levelsLabel = cloudParams.levels < 2 ? "Continuous" : `${cloudParams.levels}`;
+
   return (
-    <canvas
-      ref={canvasRef}
-      className={`w-full h-full ${interactive ? "cursor-pointer" : ""}`}
-      onMouseMove={handleMouseMove}
-      onClick={handleClick}
-      onMouseLeave={handleMouseLeave}
-    />
+    <div className="relative w-full h-full">
+      <canvas
+        ref={canvasRef}
+        className={`w-full h-full ${interactive ? "cursor-pointer" : ""}`}
+        onMouseMove={handleMouseMove}
+        onClick={handleClick}
+        onMouseLeave={handleMouseLeave}
+      />
+      <div className="absolute top-2 left-2">
+        <button
+          onClick={() => setDebugOpen((o) => !o)}
+          className="px-2 py-1 rounded text-xs font-mono"
+          style={{
+            background: "oklch(0.2 0 0 / 0.7)",
+            color: "oklch(0.9 0 0)",
+            border: "1px solid oklch(0.4 0 0 / 0.5)",
+          }}
+        >
+          {debugOpen ? "Hide Debug" : "Debug"}
+        </button>
+        {debugOpen && (
+          <div
+            className="mt-1 p-3 rounded-lg flex flex-col gap-3 text-xs font-mono"
+            style={{
+              background: "oklch(0.15 0 0 / 0.85)",
+              color: "oklch(0.9 0 0)",
+              border: "1px solid oklch(0.4 0 0 / 0.5)",
+              minWidth: "200px",
+              backdropFilter: "blur(8px)",
+            }}
+          >
+            <div className="flex flex-col gap-1">
+              <label className="flex justify-between">
+                <span>Strategy</span>
+              </label>
+              <select
+                value={cloudParams.strategy}
+                onChange={(e) =>
+                  setCloudParams((p) => ({ ...p, strategy: e.target.value as CloudStrategy }))
+                }
+                className="w-full px-1 py-0.5 rounded text-xs"
+                style={{
+                  background: "oklch(0.25 0 0)",
+                  color: "oklch(0.9 0 0)",
+                  border: "1px solid oklch(0.4 0 0 / 0.5)",
+                }}
+              >
+                <option value="noise-bias">Noise + Bias</option>
+                <option value="ink-blot">Ink Blot</option>
+              </select>
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="flex justify-between">
+                <span>Sharpness</span>
+                <span>{cloudParams.sharpness.toFixed(1)}</span>
+              </label>
+              <input
+                type="range"
+                min="0.1"
+                max="20"
+                step="0.1"
+                value={cloudParams.sharpness}
+                onChange={(e) =>
+                  setCloudParams((p) => ({ ...p, sharpness: parseFloat(e.target.value) }))
+                }
+                className="w-full"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="flex justify-between">
+                <span>Grayscale Levels</span>
+                <span>{levelsLabel}</span>
+              </label>
+              <input
+                type="range"
+                min="0"
+                max="16"
+                step="1"
+                value={cloudParams.levels}
+                onChange={(e) =>
+                  setCloudParams((p) => ({ ...p, levels: parseInt(e.target.value, 10) }))
+                }
+                className="w-full"
+              />
+            </div>
+            <button
+              onClick={() => setCloudParams(defaultCloudParams)}
+              className="px-2 py-1 rounded text-xs"
+              style={{
+                background: "oklch(0.3 0 0 / 0.6)",
+                border: "1px solid oklch(0.4 0 0 / 0.5)",
+              }}
+            >
+              Reset
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

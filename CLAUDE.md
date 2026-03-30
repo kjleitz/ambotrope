@@ -34,6 +34,11 @@ infra/       — Terraform (planned)
 - Workspace packages import each other via `workspace:*` protocol.
 - All changes must include tests. Run `pnpm test` to verify.
 
+## Tracking Work
+
+- If you notice a bug or broken behavior but can't or don't want to fix it now, file a GitHub issue.
+- Same for feature requests — create an issue so it doesn't get lost.
+
 ## Commands
 
 - `pnpm test` — run all tests across all packages

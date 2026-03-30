@@ -1,4 +1,5 @@
 import type { NoiseField, NoiseGenerator, Point } from "./types.js";
+import { seededRandom } from "./seed.js";
 
 // --- Single ink blot ---
 
@@ -88,36 +89,40 @@ export interface InkBlotFieldConfig {
   frequency?: number;
   /** Center bias for each blot shape (0–1). Default 0.6. */
   centerBias?: number;
+  /** Minimum sharpness for per-blot random sharpness. Default 1. */
+  sharpnessMin?: number;
+  /** Maximum sharpness for per-blot random sharpness. Default 1. */
+  sharpnessMax?: number;
 }
 
 export function createInkBlotField(config: InkBlotFieldConfig): NoiseField {
-  const { generator, vertices, blobRadius, frequency, centerBias } = config;
+  const { generator, vertices, blobRadius, frequency, centerBias, sharpnessMin = 1, sharpnessMax = 1 } = config;
 
-  // Pre-create an ink blot shape for each vertex
-  const blots: Array<{ blot: InkBlotShape; center: Point }> = vertices.map((v, i) => ({
-    blot: createInkBlotShape({
-      generator,
-      radius: blobRadius,
-      // Derive a unique seed per vertex from its position
-      seed: (v.x * 7.31 + v.y * 13.97 + i * 0.01),
-      frequency,
-      centerBias,
-    }),
-    center: v,
-  }));
+  // Pre-create an ink blot shape and per-blot sharpness for each vertex
+  const blots: Array<{ blot: InkBlotShape; center: Point; sharpness: number }> = vertices.map((v, i) => {
+    const seed = v.x * 7.31 + v.y * 13.97 + i * 0.01;
+    const rng = seededRandom(seed);
+    const sharpness = sharpnessMin + rng() * (sharpnessMax - sharpnessMin);
+    return {
+      blot: createInkBlotShape({ generator, radius: blobRadius, seed, frequency, centerBias }),
+      center: v,
+      sharpness,
+    };
+  });
 
   const cullRadiusSq = blobRadius * blobRadius;
 
   function sample(x: number, y: number): number {
     let maxVal = 0;
 
-    for (const { blot, center } of blots) {
+    for (const { blot, center, sharpness } of blots) {
       const dx = x - center.x;
       const dy = y - center.y;
 
       if (dx * dx + dy * dy > cullRadiusSq) continue;
 
-      const val = blot.sample(dx, dy);
+      let val = blot.sample(dx, dy);
+      if (val > 0 && sharpness !== 1) val = Math.pow(val, sharpness);
       if (val > maxVal) maxVal = val;
     }
 

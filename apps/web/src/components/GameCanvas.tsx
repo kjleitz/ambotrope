@@ -42,7 +42,7 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
       activeSeed,
       canvas.width,
       canvas.height,
-      cloudParams.strategy,
+      cloudParams,
     );
     state = generateCloudTexture(state, cloudParams);
     renderStateRef.current = state;
@@ -183,18 +183,34 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
               </select>
             </div>
             <div className="flex flex-col gap-1">
-              <label className="flex justify-between">
-                <span>Sharpness</span>
-                <span>{cloudParams.sharpness.toFixed(1)}</span>
-              </label>
+              <label><span>Sharpness</span></label>
+              <div className="flex items-center gap-1 text-xs" style={{ color: "oklch(0.6 0 0)" }}>
+                <span>Min</span>
+                <span className="ml-auto">{cloudParams.sharpnessMin.toFixed(1)}</span>
+              </div>
               <input
                 type="range"
                 min="0.1"
                 max="20"
                 step="0.1"
-                value={cloudParams.sharpness}
+                value={cloudParams.sharpnessMin}
                 onChange={(e) =>
-                  setCloudParams((p) => ({ ...p, sharpness: parseFloat(e.target.value) }))
+                  setCloudParams((p) => ({ ...p, sharpnessMin: parseFloat(e.target.value) }))
+                }
+                className="w-full"
+              />
+              <div className="flex items-center gap-1 text-xs" style={{ color: "oklch(0.6 0 0)" }}>
+                <span>Max</span>
+                <span className="ml-auto">{cloudParams.sharpnessMax.toFixed(1)}</span>
+              </div>
+              <input
+                type="range"
+                min="0.1"
+                max="20"
+                step="0.1"
+                value={cloudParams.sharpnessMax}
+                onChange={(e) =>
+                  setCloudParams((p) => ({ ...p, sharpnessMax: parseFloat(e.target.value) }))
                 }
                 className="w-full"
               />

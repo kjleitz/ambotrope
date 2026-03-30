@@ -20,4 +20,4 @@ export {
   getPlayerView,
   scoreRound,
 } from "./game.js";
-export { DEFAULT_WORD_LIST } from "./words.js";
+export { DEFAULT_WORD_LIST, DEFAULT_DISABLED_WORDS } from "./words.js";

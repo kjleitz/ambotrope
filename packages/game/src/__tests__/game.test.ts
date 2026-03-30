@@ -40,7 +40,7 @@ function setupReveal(): GameState {
   state = selectTile(state, "p3", "0,1");
   state = selectWords(state, "p1", ["Batman", "Ball"]);
   state = selectWords(state, "p2", ["Maraca", "Egg"]);
-  state = selectWords(state, "p3", ["Triangle"]);
+  state = selectWords(state, "p3", ["Lungs"]);
   state = lockIn(state, "p1");
   state = lockIn(state, "p2");
   state = lockIn(state, "p3");

@@ -6,12 +6,15 @@ import { WordSelector } from "@/components/WordSelector.tsx";
 import { PlayerPanel } from "@/components/PlayerPanel.tsx";
 import { PhaseBar } from "@/components/PhaseBar.tsx";
 import { RoundResult } from "@/components/RoundResult.tsx";
+import { DEFAULT_DISABLED_WORDS } from "@ambotrope/game";
 
 export function GamePage() {
   const { gameId } = useParams<{ gameId: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const playerName = searchParams.get("name");
   const [nameInput, setNameInput] = useState("");
+  const [disabledWords, setDisabledWords] = useState<ReadonlySet<string>>(DEFAULT_DISABLED_WORDS);
+  const [wordDebugOpen, setWordDebugOpen] = useState(false);
 
   const {
     gameView,
@@ -107,6 +110,20 @@ export function GamePage() {
   const canSelectWords = phase === "selecting" && !gameView.self.lockedIn;
   const showLockIn = phase === "selecting" && !gameView.self.lockedIn;
 
+  const activeWordList = gameView.config.wordList.filter((w) => !disabledWords.has(w));
+
+  function toggleWord(word: string) {
+    setDisabledWords((prev) => {
+      const next = new Set(prev);
+      if (next.has(word)) {
+        next.delete(word);
+      } else {
+        next.add(word);
+      }
+      return next;
+    });
+  }
+
   return (
     <div className="flex-1 flex flex-col h-dvh">
       {/* Phase bar */}
@@ -182,7 +199,7 @@ export function GamePage() {
               style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
             >
               <WordSelector
-                wordList={gameView.config.wordList}
+                wordList={activeWordList}
                 maxWords={gameView.config.maxWordsPerPlayer}
                 selectedWords={gameView.self.selectedWords}
                 onToggle={selectWords}
@@ -190,6 +207,47 @@ export function GamePage() {
               />
             </div>
           )}
+
+          {/* Debug: word list toggle */}
+          <div className="flex flex-col gap-1">
+            <button
+              onClick={() => setWordDebugOpen((o) => !o)}
+              className="text-left px-2 py-1 rounded text-xs font-mono"
+              style={{
+                background: "oklch(0.2 0 0 / 0.7)",
+                color: "oklch(0.9 0 0)",
+                border: "1px solid oklch(0.4 0 0 / 0.5)",
+              }}
+            >
+              {wordDebugOpen ? "Hide Words" : "Words"}
+            </button>
+            {wordDebugOpen && (
+              <div
+                className="p-2 rounded-lg flex flex-col gap-1 text-xs font-mono"
+                style={{
+                  background: "oklch(0.15 0 0 / 0.85)",
+                  color: "oklch(0.9 0 0)",
+                  border: "1px solid oklch(0.4 0 0 / 0.5)",
+                  backdropFilter: "blur(8px)",
+                }}
+              >
+                {gameView.config.wordList.map((word) => {
+                  const enabled = !disabledWords.has(word);
+                  return (
+                    <label key={word} className="flex items-center gap-2 cursor-pointer select-none px-1 py-0.5 rounded" style={{ opacity: enabled ? 1 : 0.45 }}>
+                      <input
+                        type="checkbox"
+                        checked={enabled}
+                        onChange={() => toggleWord(word)}
+                        className="accent-current"
+                      />
+                      {word}
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
           {/* Connection status */}
           <div className="flex items-center gap-1.5 text-xs" style={{ color: "var(--color-text-muted)" }}>

@@ -23,4 +23,28 @@ export const DEFAULT_WORD_LIST: string[] = [
   "Mouth",
   "Dress",
   "Tongue",
+  "Mushroom",
+  "Clown",
+  "Orbital",
+  "Jelly",
+  "Peanut",
+  "Voldemort",
+  "Evil",
+  "Walnut",
+  "Clothing",
+  "Formalwear",
 ];
+
+export const DEFAULT_DISABLED_WORDS: ReadonlySet<string> = new Set([
+  "Ball",
+  "Snake",
+  "Leaf",
+  "Mouth",
+  "Dress",
+  "Mushroom",
+  "Orbital",
+  "Peanut",
+  "Tongue",
+  "Evil",
+  "Clothing",
+]);

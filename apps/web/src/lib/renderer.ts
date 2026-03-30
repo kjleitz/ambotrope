@@ -16,14 +16,17 @@ export interface CloudParams {
   strategy: CloudStrategy;
   /** Number of discrete grayscale levels (2 = black/white, 8 = smooth posterization). 0 = continuous (no posterization). */
   levels: number;
-  /** Edge sharpness. 1 = default soft clouds, higher = sharper edges. Range: 0.1–20. */
-  sharpness: number;
+  /** Minimum edge sharpness for the seeded random range. */
+  sharpnessMin: number;
+  /** Maximum edge sharpness for the seeded random range. */
+  sharpnessMax: number;
 }
 
 export const defaultCloudParams: CloudParams = {
   strategy: "ink-blot",
   levels: 2,
-  sharpness: 3,
+  sharpnessMin: 2.0,
+  sharpnessMax: 3.5,
 };
 
 export interface RenderState {
@@ -35,6 +38,7 @@ export interface RenderState {
   offsetX: number;
   offsetY: number;
   scale: number;
+  seed: number;
 }
 
 export function createRenderState(
@@ -42,8 +46,9 @@ export function createRenderState(
   seed: number,
   canvasWidth: number,
   canvasHeight: number,
-  strategy: CloudStrategy = "noise-bias",
+  cloudParams: CloudParams = defaultCloudParams,
 ): RenderState {
+  const strategy = cloudParams.strategy;
   const hexSize = 50;
   const gameGrid = createGameGrid({ tileCount: tileIds.length, hexSize });
 
@@ -55,6 +60,8 @@ export function createRenderState(
         generator,
         vertices,
         blobRadius: hexSize * 1.5,
+        sharpnessMin: cloudParams?.sharpnessMin,
+        sharpnessMax: cloudParams?.sharpnessMax,
       })
     : createNoiseField({
         generator,
@@ -94,6 +101,7 @@ export function createRenderState(
     offsetX,
     offsetY,
     scale,
+    seed,
   };
 }
 
@@ -107,7 +115,7 @@ export function generateCloudTexture(state: RenderState, params: CloudParams = d
   const imageData = ctx.createImageData(canvasWidth, canvasHeight);
   const data = imageData.data;
 
-  const { strategy, levels, sharpness } = params;
+  const { strategy, levels } = params;
   const isInkBlot = strategy === "ink-blot";
 
   for (let py = 0; py < canvasHeight; py += resolution) {
@@ -119,7 +127,7 @@ export function generateCloudTexture(state: RenderState, params: CloudParams = d
       let cloudAlpha: number;
 
       if (isInkBlot) {
-        // Ink blots: sample at native coordinates — the field is already shaped
+        // Ink blots: sample at native coordinates — sharpness is applied per-blot inside the field
         const value = noiseField.sample(wx, wy);
         const threshold = 0.05;
         cloudAlpha = value > threshold
@@ -141,12 +149,12 @@ export function generateCloudTexture(state: RenderState, params: CloudParams = d
         cloudAlpha = combined > threshold
           ? Math.min(1, (combined - threshold) / (1 - threshold) * 1.5)
           : 0;
-      }
 
-      // Sharpness: raise alpha to a power to steepen the edge curve.
-      // >1 = sharper edges, <1 = even softer than default.
-      if (sharpness !== 1 && cloudAlpha > 0) {
-        cloudAlpha = Math.pow(cloudAlpha, sharpness);
+        // Sharpness post-processing for noise-bias strategy
+        const sharpness = params.sharpnessMin;
+        if (sharpness !== 1 && cloudAlpha > 0) {
+          cloudAlpha = Math.pow(cloudAlpha, sharpness);
+        }
       }
 
       // Posterization: quantize to discrete levels.

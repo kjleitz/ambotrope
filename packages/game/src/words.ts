@@ -16,4 +16,11 @@ export const DEFAULT_WORD_LIST: string[] = [
   "Poop",
   "Feet",
   "Pacman",
+  "Snake",
+  "Leaf",
+  "Helicopter",
+  "Fish",
+  "Mouth",
+  "Dress",
+  "Tongue",
 ];

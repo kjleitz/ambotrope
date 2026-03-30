@@ -20,7 +20,7 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const renderStateRef = useRef<RenderState | null>(null);
   const [hoveredTile, setHoveredTile] = useState<TileId | null>(null);
-  const [initialized, setInitialized] = useState(false);
+  const [renderVersion, setRenderVersion] = useState(0);
   const [cloudParams, setCloudParams] = useState<CloudParams>(defaultCloudParams);
   const [debugOpen, setDebugOpen] = useState(false);
   const [seedOverride, setSeedOverride] = useState<number | null>(null);
@@ -46,14 +46,14 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
     );
     state = generateCloudTexture(state, cloudParams);
     renderStateRef.current = state;
-    setInitialized(true);
+    setRenderVersion((v) => v + 1);
   }, [gameView.tileIds, activeSeed, cloudParams]);
 
   // Render on every relevant change
   useEffect(() => {
     const canvas = canvasRef.current;
     const state = renderStateRef.current;
-    if (!canvas || !state || !initialized) return;
+    if (!canvas || !state || renderVersion === 0) return;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
@@ -88,7 +88,7 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
     }));
 
     renderFrame(ctx, state, tiles);
-  }, [gameView, hoveredTile, interactive, initialized, cloudParams]);
+  }, [gameView, hoveredTile, interactive, renderVersion, cloudParams]);
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {

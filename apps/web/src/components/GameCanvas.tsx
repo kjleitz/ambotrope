@@ -142,24 +142,27 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
       <div className="absolute top-2 left-2">
         <button
           onClick={() => setDebugOpen((o) => !o)}
-          className="px-2 py-1 rounded text-xs font-mono"
+          className="px-2 py-1 text-xs font-mono"
           style={{
-            background: "oklch(0.2 0 0 / 0.7)",
-            color: "oklch(0.9 0 0)",
-            border: "1px solid oklch(0.4 0 0 / 0.5)",
+            background: "var(--color-surface)",
+            color: "var(--color-text)",
+            border: "1px solid var(--color-border)",
+            borderRadius: "var(--radius-control)",
+            boxShadow: "var(--shadow-paper-tight)",
           }}
         >
           {debugOpen ? "Hide Debug" : "Debug"}
         </button>
         {debugOpen && (
           <div
-            className="mt-1 p-3 rounded-lg flex flex-col gap-3 text-xs font-mono"
+            className="mt-1 p-3 flex flex-col gap-3 text-xs font-mono"
             style={{
-              background: "oklch(0.15 0 0 / 0.85)",
-              color: "oklch(0.9 0 0)",
-              border: "1px solid oklch(0.4 0 0 / 0.5)",
+              background: "var(--color-surface)",
+              color: "var(--color-text)",
+              border: "1px solid var(--color-border)",
+              borderRadius: "var(--radius-panel)",
               minWidth: "200px",
-              backdropFilter: "blur(8px)",
+              boxShadow: "var(--shadow-paper)",
             }}
           >
             <div className="flex flex-col gap-1">
@@ -171,11 +174,12 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
                 onChange={(e) =>
                   setCloudParams((p) => ({ ...p, strategy: e.target.value as CloudStrategy }))
                 }
-                className="w-full px-1 py-0.5 rounded text-xs"
+                className="w-full px-1 py-0.5 text-xs"
                 style={{
-                  background: "oklch(0.25 0 0)",
-                  color: "oklch(0.9 0 0)",
-                  border: "1px solid oklch(0.4 0 0 / 0.5)",
+                  background: "var(--color-surface-alt)",
+                  color: "var(--color-text)",
+                  border: "1px solid var(--color-border)",
+                  borderRadius: "8px",
                 }}
               >
                 <option value="noise-bias">Noise + Bias</option>
@@ -184,7 +188,7 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
             </div>
             <div className="flex flex-col gap-1">
               <label><span>Sharpness</span></label>
-              <div className="flex items-center gap-1 text-xs" style={{ color: "oklch(0.6 0 0)" }}>
+              <div className="flex items-center gap-1 text-xs" style={{ color: "var(--color-text-muted)" }}>
                 <span>Min</span>
                 <span className="ml-auto">{cloudParams.sharpnessMin.toFixed(1)}</span>
               </div>
@@ -199,7 +203,7 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
                 }
                 className="w-full"
               />
-              <div className="flex items-center gap-1 text-xs" style={{ color: "oklch(0.6 0 0)" }}>
+              <div className="flex items-center gap-1 text-xs" style={{ color: "var(--color-text-muted)" }}>
                 <span>Max</span>
                 <span className="ml-auto">{cloudParams.sharpnessMax.toFixed(1)}</span>
               </div>
@@ -234,17 +238,18 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
             </div>
             <button
               onClick={() => { setCloudParams(defaultCloudParams); setSeedOverride(null); }}
-              className="px-2 py-1 rounded text-xs"
+              className="px-2 py-1 text-xs"
               style={{
-                background: "oklch(0.3 0 0 / 0.6)",
-                border: "1px solid oklch(0.4 0 0 / 0.5)",
+                background: "var(--color-surface-alt)",
+                border: "1px solid var(--color-border)",
+                borderRadius: "8px",
               }}
             >
               Reset
             </button>
             <div
               className="border-t pt-2 mt-1 flex flex-col gap-1"
-              style={{ borderColor: "oklch(0.4 0 0 / 0.3)" }}
+              style={{ borderColor: "var(--color-border)" }}
             >
               <label className="flex justify-between">
                 <span>Seed</span>
@@ -253,20 +258,22 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
               <div className="flex gap-1">
                 <button
                   onClick={() => setSeedOverride(activeSeed - 1)}
-                  className="flex-1 px-2 py-1 rounded text-xs"
+                  className="flex-1 px-2 py-1 text-xs"
                   style={{
-                    background: "oklch(0.3 0 0 / 0.6)",
-                    border: "1px solid oklch(0.4 0 0 / 0.5)",
+                    background: "var(--color-surface-alt)",
+                    border: "1px solid var(--color-border)",
+                    borderRadius: "8px",
                   }}
                 >
                   Prev
                 </button>
                 <button
                   onClick={() => setSeedOverride(activeSeed + 1)}
-                  className="flex-1 px-2 py-1 rounded text-xs"
+                  className="flex-1 px-2 py-1 text-xs"
                   style={{
-                    background: "oklch(0.3 0 0 / 0.6)",
-                    border: "1px solid oklch(0.4 0 0 / 0.5)",
+                    background: "var(--color-surface-alt)",
+                    border: "1px solid var(--color-border)",
+                    borderRadius: "8px",
                   }}
                 >
                   Next

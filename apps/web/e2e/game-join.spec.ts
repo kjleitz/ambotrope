@@ -1,22 +1,27 @@
 import { test, expect } from "@playwright/test";
 
+const SELECTING_HEADING = "Mark your tile and descriptors";
+const JOIN_HEADING = "Join Reading";
+const JOIN_BUTTON = "Join Reading";
+const REVEAL_HEADING = "Read the sheet";
+
 test.describe("game join flow", () => {
   test("shared link shows name prompt, then joins game", async ({ page }) => {
     // Open a shared game link (no ?name= param)
     await page.goto("/game/test-join-1");
 
     // Should see the join form, not an error
-    await expect(page.getByRole("heading", { name: "Join Game" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: JOIN_HEADING })).toBeVisible();
     await expect(page.getByText("test-join-1")).toBeVisible();
 
     // Enter name and join
     const nameInput = page.getByPlaceholder("Enter your name");
     await expect(nameInput).toBeFocused();
     await nameInput.fill("Alice");
-    await page.getByRole("button", { name: "Join Game" }).click();
+    await page.getByRole("button", { name: JOIN_BUTTON }).click();
 
     // Should now be in the game — phase bar visible
-    await expect(page.getByText("Choose your tile")).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(SELECTING_HEADING)).toBeVisible({ timeout: 5000 });
   });
 
   test("shared link join via Enter key", async ({ page }) => {
@@ -26,13 +31,13 @@ test.describe("game join flow", () => {
     await nameInput.fill("Bob");
     await nameInput.press("Enter");
 
-    await expect(page.getByText("Choose your tile")).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(SELECTING_HEADING)).toBeVisible({ timeout: 5000 });
   });
 
   test("join button is disabled with empty name", async ({ page }) => {
     await page.goto("/game/test-join-3");
 
-    const joinButton = page.getByRole("button", { name: "Join Game" });
+    const joinButton = page.getByRole("button", { name: JOIN_BUTTON });
     await expect(joinButton).toBeDisabled();
 
     // Type a name — button should enable
@@ -48,12 +53,12 @@ test.describe("game join flow", () => {
     await page.getByRole("button", { name: "Create New Game" }).click();
 
     // Should land in selecting phase
-    await expect(page.getByText("Choose your tile")).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(SELECTING_HEADING)).toBeVisible({ timeout: 5000 });
   });
 
   test("navigating directly to a game URL with name param works", async ({ page }) => {
     await page.goto("/game/direct-join-1?name=Alice");
-    await expect(page.getByText("Choose your tile")).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(SELECTING_HEADING)).toBeVisible({ timeout: 5000 });
     await expect(page.getByText("Alice")).toBeVisible();
   });
 
@@ -62,7 +67,7 @@ test.describe("game join flow", () => {
     await page.goto("/");
     await page.getByPlaceholder("Enter your name").fill("Alice");
     await page.getByRole("button", { name: "Create New Game" }).click();
-    await expect(page.getByText("Choose your tile")).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(SELECTING_HEADING)).toBeVisible({ timeout: 5000 });
 
     // Player 2 navigates using the FULL URL from Player 1's address bar (includes ?name=)
     const fullUrl = page.url();
@@ -70,7 +75,7 @@ test.describe("game join flow", () => {
     await page2.goto(fullUrl);
 
     // Player 2 should be in the game
-    await expect(page2.getByText("Choose your tile")).toBeVisible({ timeout: 5000 });
+    await expect(page2.getByText(SELECTING_HEADING)).toBeVisible({ timeout: 5000 });
   });
 
   test("player can join a game that is in selecting phase", async ({ page, context }) => {
@@ -78,7 +83,7 @@ test.describe("game join flow", () => {
     await page.goto("/");
     await page.getByPlaceholder("Enter your name").fill("Alice");
     await page.getByRole("button", { name: "Create New Game" }).click();
-    await expect(page.getByText("Choose your tile")).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(SELECTING_HEADING)).toBeVisible({ timeout: 5000 });
 
     const gameUrl = new URL(page.url());
     const gamePath = gameUrl.pathname;
@@ -87,15 +92,15 @@ test.describe("game join flow", () => {
     const page2 = await context.newPage();
     await page2.goto(gamePath);
     await page2.getByPlaceholder("Enter your name").fill("Bob");
-    await page2.getByRole("button", { name: "Join Game" }).click();
-    await expect(page2.getByText("Choose your tile")).toBeVisible({ timeout: 5000 });
+    await page2.getByRole("button", { name: JOIN_BUTTON }).click();
+    await expect(page2.getByText(SELECTING_HEADING)).toBeVisible({ timeout: 5000 });
 
     // Player 3 joins — should see the game, not an error
     const page3 = await context.newPage();
     await page3.goto(gamePath);
     await page3.getByPlaceholder("Enter your name").fill("Charlie");
-    await page3.getByRole("button", { name: "Join Game" }).click();
-    await expect(page3.getByText("Choose your tile")).toBeVisible({ timeout: 5000 });
+    await page3.getByRole("button", { name: JOIN_BUTTON }).click();
+    await expect(page3.getByText(SELECTING_HEADING)).toBeVisible({ timeout: 5000 });
     await expect(page3.getByText("Charlie")).toBeVisible();
   });
 
@@ -104,7 +109,7 @@ test.describe("game join flow", () => {
     await page.goto("/");
     await page.getByPlaceholder("Enter your name").fill("Alice");
     await page.getByRole("button", { name: "Create New Game" }).click();
-    await expect(page.getByText("Choose your tile")).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(SELECTING_HEADING)).toBeVisible({ timeout: 5000 });
 
     const gameUrl = new URL(page.url());
     const gamePath = gameUrl.pathname;
@@ -113,8 +118,8 @@ test.describe("game join flow", () => {
     const page2 = await context.newPage();
     await page2.goto(gamePath);
     await page2.getByPlaceholder("Enter your name").fill("Bob");
-    await page2.getByRole("button", { name: "Join Game" }).click();
-    await expect(page2.getByText("Choose your tile")).toBeVisible({ timeout: 5000 });
+    await page2.getByRole("button", { name: JOIN_BUTTON }).click();
+    await expect(page2.getByText(SELECTING_HEADING)).toBeVisible({ timeout: 5000 });
 
     // Select tiles
     const canvas1 = page.locator("canvas");
@@ -129,13 +134,13 @@ test.describe("game join flow", () => {
     // Both lock in — auto-reveals
     await page.getByRole("button", { name: "Lock In" }).click();
     await page2.getByRole("button", { name: "Lock In" }).click();
-    await expect(page.getByText("Results!")).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(REVEAL_HEADING)).toBeVisible({ timeout: 5000 });
 
     // Player 3 tries to join during reveal — should see error
     const page3 = await context.newPage();
     await page3.goto(gamePath);
     await page3.getByPlaceholder("Enter your name").fill("Charlie");
-    await page3.getByRole("button", { name: "Join Game" }).click();
+    await page3.getByRole("button", { name: JOIN_BUTTON }).click();
     await expect(page3.getByText("Cannot join during reveal phase")).toBeVisible({ timeout: 5000 });
     await expect(page3.getByText("Back to home")).toBeVisible();
   });
@@ -145,7 +150,7 @@ test.describe("game join flow", () => {
     await page.goto("/");
     await page.getByPlaceholder("Enter your name").fill("Alice");
     await page.getByRole("button", { name: "Create New Game" }).click();
-    await expect(page.getByText("Choose your tile")).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(SELECTING_HEADING)).toBeVisible({ timeout: 5000 });
 
     // Grab the game URL (without the ?name= param)
     const gameUrl = new URL(page.url());
@@ -154,9 +159,9 @@ test.describe("game join flow", () => {
     // Player 2 opens the shared link
     const page2 = await context.newPage();
     await page2.goto(gamePath);
-    await expect(page2.getByRole("heading", { name: "Join Game" })).toBeVisible();
+    await expect(page2.getByRole("heading", { name: JOIN_HEADING })).toBeVisible();
     await page2.getByPlaceholder("Enter your name").fill("Bob");
-    await page2.getByRole("button", { name: "Join Game" }).click();
+    await page2.getByRole("button", { name: JOIN_BUTTON }).click();
 
     // Both players should see each other
     await expect(page.getByText("Bob")).toBeVisible({ timeout: 5000 });

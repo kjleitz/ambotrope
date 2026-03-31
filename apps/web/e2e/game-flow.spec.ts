@@ -1,5 +1,9 @@
 import { test, expect, type Page } from "@playwright/test";
 
+const SELECTING_HEADING = "Mark your tile and descriptors";
+const JOIN_BUTTON = "Join Reading";
+const REVEAL_HEADING = "Read the sheet";
+
 /**
  * Helper: click the canvas at a position relative to the center of the canvas.
  * The hex grid is centered, so center = guaranteed tile hit.
@@ -21,7 +25,7 @@ async function setupTwoPlayerGame(page: Page, context: import("@playwright/test"
   await page.goto("/");
   await page.getByPlaceholder("Enter your name").fill("Alice");
   await page.getByRole("button", { name: "Create New Game" }).click();
-  await expect(page.getByText("Choose your tile")).toBeVisible({ timeout: 5000 });
+  await expect(page.getByText(SELECTING_HEADING)).toBeVisible({ timeout: 5000 });
 
   // Get the game path
   const gameUrl = new URL(page.url());
@@ -31,19 +35,19 @@ async function setupTwoPlayerGame(page: Page, context: import("@playwright/test"
   const page2 = await context.newPage();
   await page2.goto(gamePath);
   await page2.getByPlaceholder("Enter your name").fill("Bob");
-  await page2.getByRole("button", { name: "Join Game" }).click();
+  await page2.getByRole("button", { name: JOIN_BUTTON }).click();
 
-  await expect(page.getByText("Choose your tile")).toBeVisible({ timeout: 5000 });
-  await expect(page2.getByText("Choose your tile")).toBeVisible({ timeout: 5000 });
+  await expect(page.getByText(SELECTING_HEADING)).toBeVisible({ timeout: 5000 });
+  await expect(page2.getByText(SELECTING_HEADING)).toBeVisible({ timeout: 5000 });
 
   return { alice: page, bob: page2 };
 }
 
 async function bothSelectTilesAndWords(alice: Page, bob: Page) {
   await clickTile(alice, 0, 0);
-  await expect(alice.locator(".rounded-lg").filter({ hasText: "You" }).getByText("Tile selected")).toBeVisible({ timeout: 3000 });
+  await expect(alice.getByText("Tile selected")).toBeVisible({ timeout: 3000 });
   await clickTile(bob, 60, 0);
-  await expect(bob.locator(".rounded-lg").filter({ hasText: "You" }).getByText("Tile selected")).toBeVisible({ timeout: 3000 });
+  await expect(bob.getByText("Tile selected")).toBeVisible({ timeout: 3000 });
 
   await alice.getByRole("button", { name: "Batman" }).click();
   await bob.getByRole("button", { name: "Maraca" }).click();
@@ -52,7 +56,7 @@ async function bothSelectTilesAndWords(alice: Page, bob: Page) {
 async function bothLockIn(alice: Page, bob: Page) {
   await alice.getByRole("button", { name: "Lock In" }).click();
   await bob.getByRole("button", { name: "Lock In" }).click();
-  await expect(alice.getByText("Results!")).toBeVisible({ timeout: 5000 });
+  await expect(alice.getByText(REVEAL_HEADING)).toBeVisible({ timeout: 5000 });
 }
 
 test.describe("single player start", () => {
@@ -60,9 +64,9 @@ test.describe("single player start", () => {
     await page.goto("/");
     await page.getByPlaceholder("Enter your name").fill("Alice");
     await page.getByRole("button", { name: "Create New Game" }).click();
-    await expect(page.getByText("Choose your tile")).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(SELECTING_HEADING)).toBeVisible({ timeout: 5000 });
 
-    await expect(page.getByText("Share this link", { exact: true })).toBeVisible();
+    await expect(page.getByText("Share this sheet", { exact: true })).toBeVisible();
   });
 
   test("shows connected status indicator", async ({ page }) => {
@@ -86,21 +90,20 @@ test.describe("single player start", () => {
     await page.goto("/");
     await page.getByPlaceholder("Enter your name").fill("Alice");
     await page.getByRole("button", { name: "Create New Game" }).click();
-    await expect(page.getByText("Choose your tile")).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(SELECTING_HEADING)).toBeVisible({ timeout: 5000 });
 
     await clickTile(page, 0, 0);
     await expect(page.getByText("Tile selected")).toBeVisible({ timeout: 3000 });
 
     await page.getByRole("button", { name: "Batman" }).click();
-    const selfCard = page.locator(".rounded-lg").filter({ hasText: "You" });
-    await expect(selfCard.locator("span.rounded-full", { hasText: "Batman" })).toBeVisible();
+    await expect(page.getByText("Batman", { exact: true })).toHaveCount(2);
   });
 
   test("both players in selecting when second joins", async ({ page, context }) => {
     const { alice, bob } = await setupTwoPlayerGame(page, context);
 
-    await expect(alice.getByText("Choose your tile")).toBeVisible();
-    await expect(bob.getByText("Choose your tile")).toBeVisible();
+    await expect(alice.getByText(SELECTING_HEADING)).toBeVisible();
+    await expect(bob.getByText(SELECTING_HEADING)).toBeVisible();
   });
 });
 
@@ -131,8 +134,7 @@ test.describe("selecting phase", () => {
 
     await alice.getByRole("button", { name: "Batman" }).click();
 
-    const selfCard = alice.locator(".rounded-lg").filter({ hasText: "You" });
-    await expect(selfCard.locator("span.rounded-full", { hasText: "Batman" })).toBeVisible();
+    await expect(alice.getByText("Batman", { exact: true })).toHaveCount(2);
   });
 
   test("can select words and they appear on player card", async ({ page, context }) => {
@@ -141,9 +143,8 @@ test.describe("selecting phase", () => {
     await alice.getByRole("button", { name: "Batman" }).click();
     await alice.getByRole("button", { name: "Egg", exact: true }).click();
 
-    const selfCard = alice.locator(".rounded-lg").filter({ hasText: "You" });
-    await expect(selfCard.locator("span.rounded-full", { hasText: "Batman" })).toBeVisible();
-    await expect(selfCard.locator("span.rounded-full", { hasText: "Egg" })).toBeVisible();
+    await expect(alice.getByText("Batman", { exact: true })).toHaveCount(2);
+    await expect(alice.getByText("Egg", { exact: true })).toHaveCount(2);
   });
 
   test("other player's words appear in real time", async ({ page, context }) => {
@@ -151,8 +152,7 @@ test.describe("selecting phase", () => {
 
     await bob.getByRole("button", { name: "Maraca" }).click();
 
-    const bobCard = alice.locator(".rounded-lg").filter({ hasText: "Bob" });
-    await expect(bobCard.locator("span.rounded-full", { hasText: "Maraca" })).toBeVisible({ timeout: 3000 });
+    await expect(alice.getByText("Maraca", { exact: true })).toHaveCount(2, { timeout: 3000 });
   });
 });
 
@@ -162,8 +162,8 @@ test.describe("lock in and reveal", () => {
     await bothSelectTilesAndWords(alice, bob);
     await bothLockIn(alice, bob);
 
-    await expect(alice.getByText("Results!")).toBeVisible();
-    await expect(bob.getByText("Results!")).toBeVisible();
+    await expect(alice.getByText(REVEAL_HEADING)).toBeVisible();
+    await expect(bob.getByText(REVEAL_HEADING)).toBeVisible();
   });
 
   test("shows round results with scores", async ({ page, context }) => {
@@ -189,7 +189,7 @@ test.describe("lock in and reveal", () => {
     await bothLockIn(alice, bob);
 
     await alice.getByRole("button", { name: "Next Round" }).click();
-    await expect(alice.getByText("Choose your tile")).toBeVisible({ timeout: 5000 });
+    await expect(alice.getByText(SELECTING_HEADING)).toBeVisible({ timeout: 5000 });
     await expect(alice.getByText("Round 2")).toBeVisible();
   });
 });

@@ -20,11 +20,16 @@ export function RoundResult({ gameView, messages }: RoundResultProps) {
 
   return (
     <div
-      className="flex flex-col gap-3 p-4 rounded-xl"
-      style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
+      className="flex flex-col gap-3 p-4"
+      style={{
+        background: "var(--color-surface)",
+        border: "1.5px solid var(--color-border-strong)",
+        borderRadius: "var(--radius-panel)",
+        boxShadow: "var(--shadow-paper)",
+      }}
     >
       <div className="font-semibold">
-        {hasCollisions ? "Collisions detected!" : "No collisions -- everyone wins!"}
+        {hasCollisions ? "Overlapping readings detected" : "Clean read. Everyone scores."}
       </div>
       <div className="flex flex-col gap-1">
         {allPlayers.map((player) => {
@@ -32,7 +37,7 @@ export function RoundResult({ gameView, messages }: RoundResultProps) {
           return (
             <div key={player.id} className="flex items-center gap-2 text-sm">
               <span
-                className="w-5 h-5 flex items-center justify-center rounded-full text-xs font-bold text-white"
+                className="w-5 h-5 flex items-center justify-center text-xs font-bold text-white"
                 style={{ background: score > 0 ? "var(--color-success)" : "var(--color-danger)" }}
               >
                 {score}

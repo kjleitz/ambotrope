@@ -1,13 +1,13 @@
 import type { GamePhase } from "@ambotrope/game";
 
 const PHASE_LABELS: Record<GamePhase, string> = {
-  selecting: "Choose your tile & words",
-  reveal: "Results!",
+  selecting: "Mark your tile and descriptors",
+  reveal: "Read the sheet",
 };
 
 const PHASE_DESCRIPTIONS: Record<GamePhase, string> = {
-  selecting: "Click a hex tile and pick words that describe the clouds near it. Lock in when ready.",
-  reveal: "See where everyone landed!",
+  selecting: "Choose a paper tile and words that describe the ink blot shapes around it. Lock in when ready.",
+  reveal: "See where everyone landed and where the readings collided.",
 };
 
 interface PhaseBarProps {
@@ -20,13 +20,26 @@ interface PhaseBarProps {
 export function PhaseBar({ phase, round, onReady, onLockIn }: PhaseBarProps) {
   return (
     <div
-      className="flex items-center justify-between px-4 py-3 rounded-xl"
-      style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
+      className="flex items-center justify-between px-4 py-3"
+      style={{
+        background: "var(--color-surface)",
+        border: "1.5px solid var(--color-border-strong)",
+        borderRadius: "var(--radius-panel)",
+        boxShadow: "var(--shadow-paper)",
+      }}
     >
       <div className="flex flex-col gap-0.5">
         <div className="flex items-center gap-2">
-          <span className="font-semibold">{PHASE_LABELS[phase]}</span>
-          <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--color-surface-alt)", color: "var(--color-text-muted)" }}>
+          <span className="font-semibold tracking-tight">{PHASE_LABELS[phase]}</span>
+          <span
+            className="text-[11px] px-2 py-0.5"
+            style={{
+              background: "var(--color-surface-alt)",
+              color: "var(--color-text-muted)",
+              border: "1px solid var(--color-border)",
+              borderRadius: "999px",
+            }}
+          >
             Round {round}
           </span>
         </div>
@@ -38,8 +51,15 @@ export function PhaseBar({ phase, round, onReady, onLockIn }: PhaseBarProps) {
         {onLockIn && (
           <button
             onClick={onLockIn}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors"
-            style={{ background: "var(--color-success)", cursor: "pointer" }}
+            className="px-4 py-2 text-sm font-medium transition-colors"
+            style={{
+              background: "var(--color-success)",
+              color: "var(--color-surface)",
+              border: "1.5px solid var(--color-border-strong)",
+              borderRadius: "var(--radius-control)",
+              boxShadow: "var(--shadow-paper-tight)",
+              cursor: "pointer",
+            }}
           >
             Lock In
           </button>
@@ -47,8 +67,15 @@ export function PhaseBar({ phase, round, onReady, onLockIn }: PhaseBarProps) {
         {onReady && (
           <button
             onClick={onReady}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors"
-            style={{ background: "var(--color-primary)", cursor: "pointer" }}
+            className="px-4 py-2 text-sm font-medium transition-colors"
+            style={{
+              background: "var(--color-primary)",
+              color: "var(--color-surface)",
+              border: "1.5px solid var(--color-border-strong)",
+              borderRadius: "var(--radius-control)",
+              boxShadow: "var(--shadow-paper-tight)",
+              cursor: "pointer",
+            }}
           >
             Next Round
           </button>

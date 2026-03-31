@@ -34,19 +34,24 @@ export function GamePage() {
     }
 
     return (
-      <div className="flex-1 flex items-center justify-center p-4">
+      <div className="flex-1 flex items-center justify-center p-4 md:p-8">
         <div
-          className="flex flex-col gap-5 p-8 rounded-2xl w-full max-w-sm"
-          style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
+          className="flex flex-col gap-5 p-8 w-full max-w-sm"
+          style={{
+            background: "var(--color-surface)",
+            border: "1.5px solid var(--color-border-strong)",
+            borderRadius: "var(--radius-panel)",
+            boxShadow: "var(--shadow-paper)",
+          }}
         >
           <div className="flex flex-col gap-1">
-            <h1 className="text-xl font-bold">Join Game</h1>
+            <h1 className="text-xl font-bold tracking-tight">Join Reading</h1>
             <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
-              Enter your name to join game <span className="font-mono">{gameId}</span>
+              Enter your name to join sheet <span className="font-mono">{gameId}</span>
             </p>
           </div>
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium">Your name</label>
+            <label className="text-sm font-medium uppercase tracking-[0.16em]" style={{ color: "var(--color-ink-soft)" }}>Your name</label>
             <input
               type="text"
               value={nameInput}
@@ -55,20 +60,29 @@ export function GamePage() {
               placeholder="Enter your name"
               maxLength={30}
               autoFocus
-              className="px-3 py-2 rounded-lg text-sm outline-none"
-              style={{ background: "var(--color-surface-alt)", border: "1px solid var(--color-border)" }}
+              className="px-3 py-2 text-sm outline-none"
+              style={{
+                background: "var(--color-surface-alt)",
+                border: "1.5px solid var(--color-border)",
+                borderRadius: "var(--radius-control)",
+                boxShadow: "var(--shadow-paper-tight)",
+              }}
             />
           </div>
           <button
             onClick={handleJoin}
             disabled={!nameInput.trim()}
-            className="px-4 py-2.5 rounded-lg font-medium text-white transition-colors"
+            className="px-4 py-2.5 font-medium transition-colors"
             style={{
-              background: nameInput.trim() ? "var(--color-primary)" : "var(--color-text-muted)",
+              background: nameInput.trim() ? "var(--color-primary)" : "var(--color-border)",
+              color: "var(--color-surface)",
+              border: "1.5px solid var(--color-primary)",
+              borderRadius: "var(--radius-control)",
+              boxShadow: "var(--shadow-paper-tight)",
               cursor: nameInput.trim() ? "pointer" : "not-allowed",
             }}
           >
-            Join Game
+            Join Reading
           </button>
         </div>
       </div>
@@ -82,8 +96,13 @@ export function GamePage() {
           {error ? (
             <>
               <div
-                className="p-4 rounded-lg text-sm max-w-sm text-center"
-                style={{ background: "var(--color-danger)", color: "white" }}
+                className="p-4 text-sm max-w-sm text-center"
+                style={{
+                  background: "var(--color-danger)",
+                  color: "white",
+                  borderRadius: "var(--radius-control)",
+                  boxShadow: "var(--shadow-paper-tight)",
+                }}
               >
                 {error}
               </div>
@@ -126,8 +145,7 @@ export function GamePage() {
 
   return (
     <div className="flex-1 flex flex-col h-dvh">
-      {/* Phase bar */}
-      <div className="p-3">
+      <div className="p-3 md:p-4">
         <PhaseBar
           phase={phase}
           round={gameView.round}
@@ -136,13 +154,16 @@ export function GamePage() {
         />
       </div>
 
-      {/* Main area */}
-      <div className="flex-1 flex min-h-0">
-        {/* Canvas */}
-        <div className="flex-1 p-3 pt-0">
+      <div className="flex-1 flex min-h-0 flex-col lg:flex-row">
+        <div className="flex-1 p-3 pt-0 md:px-4">
           <div
-            className="w-full h-full rounded-xl overflow-hidden"
-            style={{ border: "1px solid var(--color-border)" }}
+            className="w-full h-full overflow-hidden"
+            style={{
+              border: "1.5px solid var(--color-border-strong)",
+              borderRadius: "var(--radius-panel)",
+              boxShadow: "var(--shadow-paper)",
+              background: "var(--color-page-alt)",
+            }}
           >
             <GameCanvas
               gameView={gameView}
@@ -152,51 +173,64 @@ export function GamePage() {
           </div>
         </div>
 
-        {/* Sidebar */}
         <div
-          className="w-72 flex flex-col gap-3 p-3 pt-0 overflow-y-auto"
+          className="w-full lg:w-80 flex flex-col gap-3 p-3 pt-0 md:px-4 overflow-y-auto"
         >
-          {/* Game link when waiting for players */}
           {phase === "selecting" && gameView.others.length === 0 && (
             <div
-              className="flex flex-col gap-1 p-3 rounded-lg"
-              style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
+              className="flex flex-col gap-1 p-3"
+              style={{
+                background: "var(--color-surface)",
+                border: "1.5px solid var(--color-border)",
+                borderRadius: "var(--radius-panel)",
+                boxShadow: "var(--shadow-paper-tight)",
+              }}
             >
-              <div className="text-xs font-medium" style={{ color: "var(--color-text-muted)" }}>
-                Share this link
+              <div className="text-xs font-medium uppercase tracking-[0.16em]" style={{ color: "var(--color-text-muted)" }}>
+                Share this sheet
               </div>
               <div
-                className="text-xs px-2 py-1.5 rounded font-mono select-all break-all"
-                style={{ background: "var(--color-surface-alt)" }}
+                className="text-xs px-2 py-1.5 font-mono select-all break-all"
+                style={{
+                  background: "var(--color-surface-alt)",
+                  border: "1px solid var(--color-border)",
+                  borderRadius: "var(--radius-control)",
+                }}
               >
                 {window.location.origin}/game/{gameId}
               </div>
             </div>
           )}
 
-          {/* Error display */}
           {error && (
             <div
-              className="p-3 rounded-lg text-sm"
-              style={{ background: "var(--color-danger)", color: "white" }}
+              className="p-3 text-sm"
+              style={{
+                background: "var(--color-danger)",
+                color: "white",
+                borderRadius: "var(--radius-control)",
+                boxShadow: "var(--shadow-paper-tight)",
+              }}
             >
               {error}
             </div>
           )}
 
-          {/* Player panel */}
           <PlayerPanel gameView={gameView} />
 
-          {/* Round result */}
           {phase === "reveal" && (
             <RoundResult gameView={gameView} messages={messages} />
           )}
 
-          {/* Word selector */}
           {phase === "selecting" && (
             <div
-              className="p-3 rounded-lg"
-              style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
+              className="p-3"
+              style={{
+                background: "var(--color-surface)",
+                border: "1.5px solid var(--color-border)",
+                borderRadius: "var(--radius-panel)",
+                boxShadow: "var(--shadow-paper-tight)",
+              }}
             >
               <WordSelector
                 wordList={activeWordList}
@@ -208,33 +242,38 @@ export function GamePage() {
             </div>
           )}
 
-          {/* Debug: word list toggle */}
           <div className="flex flex-col gap-1">
             <button
               onClick={() => setWordDebugOpen((o) => !o)}
-              className="text-left px-2 py-1 rounded text-xs font-mono"
+              className="text-left px-2 py-1 text-xs font-mono"
               style={{
-                background: "oklch(0.2 0 0 / 0.7)",
-                color: "oklch(0.9 0 0)",
-                border: "1px solid oklch(0.4 0 0 / 0.5)",
+                background: "var(--color-surface-alt)",
+                color: "var(--color-text)",
+                border: "1px solid var(--color-border)",
+                borderRadius: "var(--radius-control)",
               }}
             >
               {wordDebugOpen ? "Hide Words" : "Words"}
             </button>
             {wordDebugOpen && (
               <div
-                className="p-2 rounded-lg flex flex-col gap-1 text-xs font-mono"
+                className="p-2 flex flex-col gap-1 text-xs font-mono"
                 style={{
-                  background: "oklch(0.15 0 0 / 0.85)",
-                  color: "oklch(0.9 0 0)",
-                  border: "1px solid oklch(0.4 0 0 / 0.5)",
-                  backdropFilter: "blur(8px)",
+                  background: "var(--color-surface)",
+                  color: "var(--color-text)",
+                  border: "1px solid var(--color-border)",
+                  borderRadius: "var(--radius-panel)",
+                  boxShadow: "var(--shadow-paper-tight)",
                 }}
               >
                 {gameView.config.wordList.map((word) => {
                   const enabled = !disabledWords.has(word);
                   return (
-                    <label key={word} className="flex items-center gap-2 cursor-pointer select-none px-1 py-0.5 rounded" style={{ opacity: enabled ? 1 : 0.45 }}>
+                    <label
+                      key={word}
+                      className="flex items-center gap-2 cursor-pointer select-none px-1 py-0.5"
+                      style={{ opacity: enabled ? 1 : 0.45, borderRadius: "8px" }}
+                    >
                       <input
                         type="checkbox"
                         checked={enabled}
@@ -249,7 +288,6 @@ export function GamePage() {
             )}
           </div>
 
-          {/* Connection status */}
           <div className="flex items-center gap-1.5 text-xs" style={{ color: "var(--color-text-muted)" }}>
             <span
               className="w-2 h-2 rounded-full"

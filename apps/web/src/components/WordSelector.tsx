@@ -21,7 +21,7 @@ export function WordSelector({ wordList, maxWords, selectedWords, onToggle, disa
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="text-sm font-medium" style={{ color: "var(--color-text-muted)" }}>
+      <div className="text-sm font-medium uppercase tracking-[0.14em]" style={{ color: "var(--color-text-muted)" }}>
         Select up to {maxWords} words ({selected.size}/{maxWords})
       </div>
       <div className="flex flex-wrap gap-2">
@@ -32,10 +32,11 @@ export function WordSelector({ wordList, maxWords, selectedWords, onToggle, disa
             disabled={disabled || (!selected.has(word) && selected.size >= maxWords)}
             className="px-3 py-1.5 rounded-full text-sm transition-all"
             style={{
-              background: selected.has(word) ? "var(--color-primary)" : "var(--color-surface)",
+              background: selected.has(word) ? "var(--color-primary)" : "var(--color-surface-alt)",
               color: selected.has(word) ? "white" : "var(--color-text)",
-              border: `1px solid ${selected.has(word) ? "var(--color-primary)" : "var(--color-border)"}`,
+              border: `1.5px solid ${selected.has(word) ? "var(--color-primary)" : "var(--color-border-strong)"}`,
               opacity: disabled || (!selected.has(word) && selected.size >= maxWords) ? 0.5 : 1,
+              boxShadow: selected.has(word) ? "var(--shadow-paper-tight)" : "none",
               cursor: disabled ? "not-allowed" : "pointer",
             }}
           >

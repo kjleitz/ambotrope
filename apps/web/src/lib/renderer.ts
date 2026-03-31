@@ -32,7 +32,7 @@ export const defaultCloudParams: CloudParams = {
 export interface RenderState {
   gameGrid: GameGrid;
   noiseField: NoiseField;
-  cloudCanvas: OffscreenCanvas | null;
+  blotCanvas: OffscreenCanvas | null;
   canvasWidth: number;
   canvasHeight: number;
   offsetX: number;
@@ -95,7 +95,7 @@ export function createRenderState(
   return {
     gameGrid,
     noiseField,
-    cloudCanvas: null,
+    blotCanvas: null,
     canvasWidth,
     canvasHeight,
     offsetX,
@@ -124,13 +124,13 @@ export function generateCloudTexture(state: RenderState, params: CloudParams = d
       const wx = (px - offsetX) / scale;
       const wy = (py - offsetY) / scale;
 
-      let cloudAlpha: number;
+      let blotAlpha: number;
 
       if (isInkBlot) {
         // Ink blots: sample at native coordinates — sharpness is applied per-blot inside the field
         const value = noiseField.sample(wx, wy);
         const threshold = 0.05;
-        cloudAlpha = value > threshold
+        blotAlpha = value > threshold
           ? Math.min(1, (value - threshold) / (1 - threshold))
           : 0;
       } else {
@@ -146,32 +146,31 @@ export function generateCloudTexture(state: RenderState, params: CloudParams = d
         const combined = Math.max(0, Math.min(1, n1 + n2 + n3));
 
         const threshold = 0.45;
-        cloudAlpha = combined > threshold
+        blotAlpha = combined > threshold
           ? Math.min(1, (combined - threshold) / (1 - threshold) * 1.5)
           : 0;
 
         // Sharpness post-processing for noise-bias strategy
         const sharpness = params.sharpnessMin;
-        if (sharpness !== 1 && cloudAlpha > 0) {
-          cloudAlpha = Math.pow(cloudAlpha, sharpness);
+        if (sharpness !== 1 && blotAlpha > 0) {
+          blotAlpha = Math.pow(blotAlpha, sharpness);
         }
       }
 
       // Posterization: quantize to discrete levels.
       // levels=2 → black/white, levels=3 → black/gray/white, etc.
       if (levels >= 2) {
-        cloudAlpha = Math.round(cloudAlpha * (levels - 1)) / (levels - 1);
+        blotAlpha = Math.round(blotAlpha * (levels - 1)) / (levels - 1);
       }
 
       // Fill resolution x resolution block
       for (let dy = 0; dy < resolution && py + dy < canvasHeight; dy++) {
         for (let dx = 0; dx < resolution && px + dx < canvasWidth; dx++) {
           const idx = ((py + dy) * canvasWidth + (px + dx)) * 4;
-          // White cloud with variable alpha
-          data[idx] = 255;
-          data[idx + 1] = 255;
-          data[idx + 2] = 255;
-          data[idx + 3] = Math.round(cloudAlpha * 200);
+          data[idx] = 24;
+          data[idx + 1] = 24;
+          data[idx + 2] = 22;
+          data[idx + 3] = Math.round(blotAlpha * 235);
         }
       }
     }
@@ -179,7 +178,7 @@ export function generateCloudTexture(state: RenderState, params: CloudParams = d
 
   ctx.putImageData(imageData, 0, 0);
 
-  return { ...state, cloudCanvas: offscreen };
+  return { ...state, blotCanvas: offscreen };
 }
 
 function toScreen(point: Point, state: RenderState): { x: number; y: number } {
@@ -197,52 +196,96 @@ export interface TileRenderInfo {
   otherSelected: boolean;
 }
 
+function traceHexPath(
+  ctx: CanvasRenderingContext2D,
+  vertices: Array<{ x: number; y: number }>,
+  offsetX = 0,
+  offsetY = 0,
+): void {
+  ctx.beginPath();
+  ctx.moveTo(vertices[0].x + offsetX, vertices[0].y + offsetY);
+  for (let i = 1; i < vertices.length; i++) {
+    ctx.lineTo(vertices[i].x + offsetX, vertices[i].y + offsetY);
+  }
+  ctx.closePath();
+}
+
 export function renderFrame(
   ctx: CanvasRenderingContext2D,
   state: RenderState,
   tiles: TileRenderInfo[],
 ): void {
-  const { canvasWidth, canvasHeight, gameGrid, cloudCanvas } = state;
+  const { canvasWidth, canvasHeight, gameGrid, blotCanvas } = state;
 
-  // Sky background
-  ctx.fillStyle = "#87CEEB";
+  ctx.fillStyle = "#e7dfd0";
   ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-  // Draw cloud texture
-  if (cloudCanvas) {
-    ctx.drawImage(cloudCanvas, 0, 0);
+  const pageMargin = Math.max(24, Math.min(canvasWidth, canvasHeight) * 0.045);
+  ctx.fillStyle = "#f9f4e9";
+  ctx.fillRect(pageMargin, pageMargin, canvasWidth - pageMargin * 2, canvasHeight - pageMargin * 2);
+
+  if (blotCanvas) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(pageMargin, pageMargin, canvasWidth - pageMargin * 2, canvasHeight - pageMargin * 2);
+    ctx.clip();
+    ctx.drawImage(blotCanvas, 0, 0);
+    ctx.restore();
   }
 
-  // Draw hex tiles
   for (const tile of tiles) {
     const vertices = getTileVertices(gameGrid, tile.tileId);
     const screenVerts = vertices.map((v) => toScreen(v, state));
 
-    ctx.beginPath();
-    ctx.moveTo(screenVerts[0].x, screenVerts[0].y);
-    for (let i = 1; i < screenVerts.length; i++) {
-      ctx.lineTo(screenVerts[i].x, screenVerts[i].y);
-    }
-    ctx.closePath();
+    traceHexPath(ctx, screenVerts, 2, 3);
+    ctx.fillStyle = "rgba(57, 53, 48, 0.14)";
+    ctx.fill();
 
-    // Fill based on state
+    traceHexPath(ctx, screenVerts);
+
     if (tile.collision) {
-      ctx.fillStyle = "oklch(0.65 0.2 25 / 0.45)";
+      ctx.fillStyle = "rgba(231, 200, 181, 0.78)";
       ctx.fill();
     } else if (tile.selected) {
-      ctx.fillStyle = "oklch(0.75 0.15 300 / 0.4)";
+      ctx.fillStyle = "rgba(248, 240, 223, 0.62)";
       ctx.fill();
     } else if (tile.otherSelected) {
-      ctx.fillStyle = "oklch(0.7 0.1 140 / 0.35)";
+      ctx.fillStyle = "rgba(236, 231, 213, 0.56)";
       ctx.fill();
     } else if (tile.hovering) {
-      ctx.fillStyle = "oklch(0.85 0.08 260 / 0.35)";
+      ctx.fillStyle = "rgba(241, 234, 219, 0.42)";
+      ctx.fill();
+    } else {
+      ctx.fillStyle = "rgba(255, 253, 248, 0.18)";
       ctx.fill();
     }
+  }
 
-    // Hex border
-    ctx.strokeStyle = "oklch(0.6 0.05 230 / 0.5)";
-    ctx.lineWidth = 1.5;
+  if (blotCanvas) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(pageMargin, pageMargin, canvasWidth - pageMargin * 2, canvasHeight - pageMargin * 2);
+    ctx.clip();
+    ctx.globalAlpha = 0.96;
+    ctx.drawImage(blotCanvas, 0, 0);
+    ctx.restore();
+  }
+
+  for (const tile of tiles) {
+    const vertices = getTileVertices(gameGrid, tile.tileId);
+    const screenVerts = vertices.map((v) => toScreen(v, state));
+
+    traceHexPath(ctx, screenVerts);
+    ctx.strokeStyle = tile.selected
+      ? "#181816"
+      : tile.collision
+        ? "#8d4528"
+        : tile.otherSelected
+          ? "#546144"
+          : tile.hovering
+            ? "#312c26"
+            : "rgba(60, 55, 49, 0.78)";
+    ctx.lineWidth = tile.selected ? 2.4 : 1.6;
     ctx.stroke();
   }
 }

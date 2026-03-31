@@ -142,13 +142,15 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
       <div className="absolute top-2 left-2">
         <button
           onClick={() => setDebugOpen((o) => !o)}
-          className="px-2 py-1 text-xs font-mono"
+          className="text-xs font-mono"
           style={{
             background: "var(--color-surface)",
             color: "var(--color-text)",
-            border: "1px solid var(--color-border)",
+            border: "var(--border-width-thin) solid var(--color-border)",
             borderRadius: "var(--radius-control)",
             boxShadow: "var(--shadow-paper-tight)",
+            padding: "var(--badge-padding-y) var(--chip-padding-x)",
+            fontSize: "var(--font-size-xs)",
           }}
         >
           {debugOpen ? "Hide Debug" : "Debug"}
@@ -159,10 +161,12 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
             style={{
               background: "var(--color-surface)",
               color: "var(--color-text)",
-              border: "1px solid var(--color-border)",
+              border: "var(--border-width-thin) solid var(--color-border)",
               borderRadius: "var(--radius-panel)",
-              minWidth: "200px",
+              minWidth: "var(--size-debug-min-width)",
               boxShadow: "var(--shadow-paper)",
+              padding: "var(--panel-padding-sm)",
+              fontSize: "var(--font-size-xs)",
             }}
           >
             <div className="flex flex-col gap-1">
@@ -174,12 +178,14 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
                 onChange={(e) =>
                   setCloudParams((p) => ({ ...p, strategy: e.target.value as CloudStrategy }))
                 }
-                className="w-full px-1 py-0.5 text-xs"
+                className="w-full text-xs"
                 style={{
                   background: "var(--color-surface-alt)",
                   color: "var(--color-text)",
-                  border: "1px solid var(--color-border)",
-                  borderRadius: "8px",
+                  border: "var(--border-width-thin) solid var(--color-border)",
+                  borderRadius: "var(--radius-badge)",
+                  padding: "var(--badge-padding-y) var(--space-1)",
+                  fontSize: "var(--font-size-xs)",
                 }}
               >
                 <option value="noise-bias">Noise + Bias</option>
@@ -238,11 +244,13 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
             </div>
             <button
               onClick={() => { setCloudParams(defaultCloudParams); setSeedOverride(null); }}
-              className="px-2 py-1 text-xs"
+              className="text-xs"
               style={{
                 background: "var(--color-surface-alt)",
-                border: "1px solid var(--color-border)",
-                borderRadius: "8px",
+                border: "var(--border-width-thin) solid var(--color-border)",
+                borderRadius: "var(--radius-badge)",
+                padding: "var(--badge-padding-y) var(--chip-padding-x)",
+                fontSize: "var(--font-size-xs)",
               }}
             >
               Reset
@@ -258,22 +266,26 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
               <div className="flex gap-1">
                 <button
                   onClick={() => setSeedOverride(activeSeed - 1)}
-                  className="flex-1 px-2 py-1 text-xs"
+                  className="flex-1 text-xs"
                   style={{
                     background: "var(--color-surface-alt)",
-                    border: "1px solid var(--color-border)",
-                    borderRadius: "8px",
+                    border: "var(--border-width-thin) solid var(--color-border)",
+                    borderRadius: "var(--radius-badge)",
+                    padding: "var(--badge-padding-y) var(--chip-padding-x)",
+                    fontSize: "var(--font-size-xs)",
                   }}
                 >
                   Prev
                 </button>
                 <button
                   onClick={() => setSeedOverride(activeSeed + 1)}
-                  className="flex-1 px-2 py-1 text-xs"
+                  className="flex-1 text-xs"
                   style={{
                     background: "var(--color-surface-alt)",
-                    border: "1px solid var(--color-border)",
-                    borderRadius: "8px",
+                    border: "var(--border-width-thin) solid var(--color-border)",
+                    borderRadius: "var(--radius-badge)",
+                    padding: "var(--badge-padding-y) var(--chip-padding-x)",
+                    fontSize: "var(--font-size-xs)",
                   }}
                 >
                   Next

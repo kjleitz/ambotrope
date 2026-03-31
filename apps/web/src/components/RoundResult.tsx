@@ -23,9 +23,10 @@ export function RoundResult({ gameView, messages }: RoundResultProps) {
       className="flex flex-col gap-3 p-4"
       style={{
         background: "var(--color-surface)",
-        border: "1.5px solid var(--color-border-strong)",
+        border: "var(--border-width-medium) solid var(--color-border-strong)",
         borderRadius: "var(--radius-panel)",
         boxShadow: "var(--shadow-paper)",
+        padding: "var(--panel-padding-md)",
       }}
     >
       <div className="font-semibold">

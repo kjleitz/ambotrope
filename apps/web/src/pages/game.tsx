@@ -39,19 +39,36 @@ export function GamePage() {
           className="flex flex-col gap-5 p-8 w-full max-w-sm"
           style={{
             background: "var(--color-surface)",
-            border: "1.5px solid var(--color-border-strong)",
+            border: "var(--border-width-medium) solid var(--color-border-strong)",
             borderRadius: "var(--radius-panel)",
             boxShadow: "var(--shadow-paper)",
+            padding: "var(--panel-padding-lg)",
+            maxWidth: "var(--size-form-max)",
           }}
         >
           <div className="flex flex-col gap-1">
-            <h1 className="text-xl font-bold tracking-tight">Join Reading</h1>
-            <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
+            <h1
+              className="font-bold"
+              style={{ fontSize: "var(--font-size-xl)", letterSpacing: "var(--tracking-tight)" }}
+            >
+              Join Reading
+            </h1>
+            <p className="text-sm" style={{ color: "var(--color-text-muted)", fontSize: "var(--font-size-sm)" }}>
               Enter your name to join sheet <span className="font-mono">{gameId}</span>
             </p>
           </div>
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium uppercase tracking-[0.16em]" style={{ color: "var(--color-ink-soft)" }}>Your name</label>
+            <label
+              className="font-medium uppercase"
+              style={{
+                color: "var(--color-ink-soft)",
+                fontSize: "var(--font-size-sm)",
+                letterSpacing: "var(--tracking-wide)",
+                fontWeight: "var(--font-weight-medium)",
+              }}
+            >
+              Your name
+            </label>
             <input
               type="text"
               value={nameInput}
@@ -60,25 +77,29 @@ export function GamePage() {
               placeholder="Enter your name"
               maxLength={30}
               autoFocus
-              className="px-3 py-2 text-sm outline-none"
+              className="outline-none"
               style={{
                 background: "var(--color-surface-alt)",
-                border: "1.5px solid var(--color-border)",
+                border: "var(--border-width-medium) solid var(--color-border)",
                 borderRadius: "var(--radius-control)",
                 boxShadow: "var(--shadow-paper-tight)",
+                padding: "var(--control-padding-y) var(--control-padding-x)",
+                fontSize: "var(--font-size-sm)",
               }}
             />
           </div>
           <button
             onClick={handleJoin}
             disabled={!nameInput.trim()}
-            className="px-4 py-2.5 font-medium transition-colors"
+            className="font-medium transition-colors"
             style={{
               background: nameInput.trim() ? "var(--color-primary)" : "var(--color-border)",
               color: "var(--color-surface)",
-              border: "1.5px solid var(--color-primary)",
+              border: "var(--border-width-medium) solid var(--color-primary)",
               borderRadius: "var(--radius-control)",
               boxShadow: "var(--shadow-paper-tight)",
+              padding: "var(--control-padding-y-lg) var(--control-padding-x)",
+              fontWeight: "var(--font-weight-medium)",
               cursor: nameInput.trim() ? "pointer" : "not-allowed",
             }}
           >
@@ -102,6 +123,9 @@ export function GamePage() {
                   color: "white",
                   borderRadius: "var(--radius-control)",
                   boxShadow: "var(--shadow-paper-tight)",
+                  padding: "var(--panel-padding-md)",
+                  maxWidth: "var(--size-form-max)",
+                  fontSize: "var(--font-size-sm)",
                 }}
               >
                 {error}
@@ -159,7 +183,7 @@ export function GamePage() {
           <div
             className="w-full h-full overflow-hidden"
             style={{
-              border: "1.5px solid var(--color-border-strong)",
+              border: "var(--border-width-medium) solid var(--color-border-strong)",
               borderRadius: "var(--radius-panel)",
               boxShadow: "var(--shadow-paper)",
               background: "var(--color-page-alt)",
@@ -181,9 +205,10 @@ export function GamePage() {
               className="flex flex-col gap-1 p-3"
               style={{
                 background: "var(--color-surface)",
-                border: "1.5px solid var(--color-border)",
+                border: "var(--border-width-medium) solid var(--color-border)",
                 borderRadius: "var(--radius-panel)",
                 boxShadow: "var(--shadow-paper-tight)",
+                padding: "var(--panel-padding-sm)",
               }}
             >
               <div className="text-xs font-medium uppercase tracking-[0.16em]" style={{ color: "var(--color-text-muted)" }}>
@@ -193,8 +218,10 @@ export function GamePage() {
                 className="text-xs px-2 py-1.5 font-mono select-all break-all"
                 style={{
                   background: "var(--color-surface-alt)",
-                  border: "1px solid var(--color-border)",
+                  border: "var(--border-width-thin) solid var(--color-border)",
                   borderRadius: "var(--radius-control)",
+                  padding: "var(--chip-padding-y) var(--chip-padding-x)",
+                  fontSize: "var(--font-size-xs)",
                 }}
               >
                 {window.location.origin}/game/{gameId}
@@ -210,6 +237,8 @@ export function GamePage() {
                 color: "white",
                 borderRadius: "var(--radius-control)",
                 boxShadow: "var(--shadow-paper-tight)",
+                padding: "var(--panel-padding-sm)",
+                fontSize: "var(--font-size-sm)",
               }}
             >
               {error}
@@ -227,9 +256,10 @@ export function GamePage() {
               className="p-3"
               style={{
                 background: "var(--color-surface)",
-                border: "1.5px solid var(--color-border)",
+                border: "var(--border-width-medium) solid var(--color-border)",
                 borderRadius: "var(--radius-panel)",
                 boxShadow: "var(--shadow-paper-tight)",
+                padding: "var(--panel-padding-sm)",
               }}
             >
               <WordSelector
@@ -245,12 +275,14 @@ export function GamePage() {
           <div className="flex flex-col gap-1">
             <button
               onClick={() => setWordDebugOpen((o) => !o)}
-              className="text-left px-2 py-1 text-xs font-mono"
+              className="text-left text-xs font-mono"
               style={{
                 background: "var(--color-surface-alt)",
                 color: "var(--color-text)",
-                border: "1px solid var(--color-border)",
+                border: "var(--border-width-thin) solid var(--color-border)",
                 borderRadius: "var(--radius-control)",
+                padding: "var(--badge-padding-y) var(--chip-padding-x)",
+                fontSize: "var(--font-size-xs)",
               }}
             >
               {wordDebugOpen ? "Hide Words" : "Words"}
@@ -261,9 +293,11 @@ export function GamePage() {
                 style={{
                   background: "var(--color-surface)",
                   color: "var(--color-text)",
-                  border: "1px solid var(--color-border)",
+                  border: "var(--border-width-thin) solid var(--color-border)",
                   borderRadius: "var(--radius-panel)",
                   boxShadow: "var(--shadow-paper-tight)",
+                  padding: "var(--space-2)",
+                  fontSize: "var(--font-size-xs)",
                 }}
               >
                 {gameView.config.wordList.map((word) => {
@@ -272,7 +306,7 @@ export function GamePage() {
                     <label
                       key={word}
                       className="flex items-center gap-2 cursor-pointer select-none px-1 py-0.5"
-                      style={{ opacity: enabled ? 1 : 0.45, borderRadius: "8px" }}
+                      style={{ opacity: enabled ? 1 : 0.45, borderRadius: "var(--radius-badge)" }}
                     >
                       <input
                         type="checkbox"

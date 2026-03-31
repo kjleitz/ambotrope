@@ -15,23 +15,36 @@ export function PlayerPanel({ gameView }: PlayerPanelProps) {
         className="flex flex-col gap-1 p-3"
         style={{
           background: "var(--color-surface)",
-          border: "1.5px solid var(--color-border-strong)",
+          border: "var(--border-width-medium) solid var(--color-border-strong)",
           borderRadius: "var(--radius-panel)",
           boxShadow: "var(--shadow-paper)",
+          padding: "var(--panel-padding-sm)",
         }}
       >
         <div className="flex items-center gap-2">
           <span className="font-medium">{gameView.self.name}</span>
           <span
-            className="text-xs px-1.5 py-0.5"
-            style={{ background: "var(--color-primary)", color: "white", borderRadius: "8px" }}
+            className="text-xs"
+            style={{
+              background: "var(--color-primary)",
+              color: "white",
+              borderRadius: "var(--radius-badge)",
+              padding: "var(--badge-padding-y) var(--badge-padding-x)",
+              fontSize: "var(--font-size-xs)",
+            }}
           >
             You
           </span>
           {gameView.self.lockedIn && (
             <span
-              className="text-xs px-1.5 py-0.5"
-              style={{ background: "var(--color-success)", color: "white", borderRadius: "8px" }}
+              className="text-xs"
+              style={{
+                background: "var(--color-success)",
+                color: "white",
+                borderRadius: "var(--radius-badge)",
+                padding: "var(--badge-padding-y) var(--badge-padding-x)",
+                fontSize: "var(--font-size-xs)",
+              }}
             >
               Locked
             </span>
@@ -51,7 +64,9 @@ export function PlayerPanel({ gameView }: PlayerPanelProps) {
                 style={{
                   background: "var(--color-surface-alt)",
                   color: "var(--color-text)",
-                  border: "1px solid var(--color-border)",
+                  border: "var(--border-width-thin) solid var(--color-border)",
+                  padding: "var(--chip-padding-y) var(--chip-padding-x)",
+                  fontSize: "var(--font-size-xs)",
                 }}
               >
                 {w}
@@ -67,17 +82,24 @@ export function PlayerPanel({ gameView }: PlayerPanelProps) {
           className="flex flex-col gap-1 p-3"
           style={{
             background: "var(--color-surface)",
-            border: "1.5px solid var(--color-border)",
+            border: "var(--border-width-medium) solid var(--color-border)",
             borderRadius: "var(--radius-panel)",
             boxShadow: "var(--shadow-paper-tight)",
+            padding: "var(--panel-padding-sm)",
           }}
         >
           <div className="flex items-center gap-2">
             <span className="font-medium">{player.name}</span>
             {player.lockedIn && (
               <span
-                className="text-xs px-1.5 py-0.5"
-                style={{ background: "var(--color-success)", color: "white", borderRadius: "8px" }}
+                className="text-xs"
+                style={{
+                  background: "var(--color-success)",
+                  color: "white",
+                  borderRadius: "var(--radius-badge)",
+                  padding: "var(--badge-padding-y) var(--badge-padding-x)",
+                  fontSize: "var(--font-size-xs)",
+                }}
               >
                 Locked
               </span>
@@ -97,7 +119,9 @@ export function PlayerPanel({ gameView }: PlayerPanelProps) {
                   style={{
                     background: "var(--color-surface-alt)",
                     color: "var(--color-text)",
-                    border: "1px solid var(--color-border)",
+                    border: "var(--border-width-thin) solid var(--color-border)",
+                    padding: "var(--chip-padding-y) var(--chip-padding-x)",
+                    fontSize: "var(--font-size-xs)",
                   }}
                 >
                   {w}

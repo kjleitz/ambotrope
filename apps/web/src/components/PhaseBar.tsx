@@ -23,21 +23,24 @@ export function PhaseBar({ phase, round, onReady, onLockIn }: PhaseBarProps) {
       className="flex items-center justify-between px-4 py-3"
       style={{
         background: "var(--color-surface)",
-        border: "1.5px solid var(--color-border-strong)",
+        border: "var(--border-width-medium) solid var(--color-border-strong)",
         borderRadius: "var(--radius-panel)",
         boxShadow: "var(--shadow-paper)",
+        padding: "var(--panel-padding-sm) var(--panel-padding-md)",
       }}
     >
       <div className="flex flex-col gap-0.5">
         <div className="flex items-center gap-2">
           <span className="font-semibold tracking-tight">{PHASE_LABELS[phase]}</span>
           <span
-            className="text-[11px] px-2 py-0.5"
+            className="px-2 py-0.5"
             style={{
               background: "var(--color-surface-alt)",
               color: "var(--color-text-muted)",
-              border: "1px solid var(--color-border)",
-              borderRadius: "999px",
+              border: "var(--border-width-thin) solid var(--color-border)",
+              borderRadius: "var(--radius-chip)",
+              fontSize: "var(--font-size-xs)",
+              padding: "var(--badge-padding-y) var(--badge-padding-x)",
             }}
           >
             Round {round}
@@ -51,13 +54,16 @@ export function PhaseBar({ phase, round, onReady, onLockIn }: PhaseBarProps) {
         {onLockIn && (
           <button
             onClick={onLockIn}
-            className="px-4 py-2 text-sm font-medium transition-colors"
+            className="transition-colors"
             style={{
               background: "var(--color-success)",
               color: "var(--color-surface)",
-              border: "1.5px solid var(--color-border-strong)",
+              border: "var(--border-width-medium) solid var(--color-border-strong)",
               borderRadius: "var(--radius-control)",
               boxShadow: "var(--shadow-paper-tight)",
+              padding: "var(--control-padding-y) var(--control-padding-x)",
+              fontSize: "var(--font-size-sm)",
+              fontWeight: "var(--font-weight-medium)",
               cursor: "pointer",
             }}
           >
@@ -67,13 +73,16 @@ export function PhaseBar({ phase, round, onReady, onLockIn }: PhaseBarProps) {
         {onReady && (
           <button
             onClick={onReady}
-            className="px-4 py-2 text-sm font-medium transition-colors"
+            className="transition-colors"
             style={{
               background: "var(--color-primary)",
               color: "var(--color-surface)",
-              border: "1.5px solid var(--color-border-strong)",
+              border: "var(--border-width-medium) solid var(--color-border-strong)",
               borderRadius: "var(--radius-control)",
               boxShadow: "var(--shadow-paper-tight)",
+              padding: "var(--control-padding-y) var(--control-padding-x)",
+              fontSize: "var(--font-size-sm)",
+              fontWeight: "var(--font-weight-medium)",
               cursor: "pointer",
             }}
           >

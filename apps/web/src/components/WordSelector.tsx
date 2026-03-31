@@ -30,13 +30,15 @@ export function WordSelector({ wordList, maxWords, selectedWords, onToggle, disa
             key={word}
             onClick={() => toggle(word)}
             disabled={disabled || (!selected.has(word) && selected.size >= maxWords)}
-            className="px-3 py-1.5 rounded-full text-sm transition-all"
+            className="rounded-full transition-all"
             style={{
               background: selected.has(word) ? "var(--color-primary)" : "var(--color-surface-alt)",
               color: selected.has(word) ? "white" : "var(--color-text)",
-              border: `1.5px solid ${selected.has(word) ? "var(--color-primary)" : "var(--color-border-strong)"}`,
+              border: `var(--border-width-medium) solid ${selected.has(word) ? "var(--color-primary)" : "var(--color-border-strong)"}`,
               opacity: disabled || (!selected.has(word) && selected.size >= maxWords) ? 0.5 : 1,
               boxShadow: selected.has(word) ? "var(--shadow-paper-tight)" : "none",
+              padding: "var(--chip-padding-y) var(--chip-padding-x)",
+              fontSize: "var(--font-size-sm)",
               cursor: disabled ? "not-allowed" : "pointer",
             }}
           >

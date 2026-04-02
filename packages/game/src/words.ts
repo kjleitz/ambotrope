@@ -1,7 +1,6 @@
 export const DEFAULT_WORD_LIST: string[] = [
   "angel",
   "anger",
-  "ball",
   "batman",
   "beard",
   "butterfly",

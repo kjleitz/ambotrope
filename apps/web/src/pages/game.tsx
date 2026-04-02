@@ -35,13 +35,10 @@ export function GamePage() {
 
     return (
       <div className="flex-1 flex items-center justify-center p-4">
-        <div
-          className="flex flex-col gap-5 p-8 rounded-2xl w-full max-w-sm"
-          style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
-        >
+        <div className="flex flex-col gap-5 p-8 rounded-2xl w-full max-w-sm bg-surface border border-border">
           <div className="flex flex-col gap-1">
             <h1 className="text-xl font-bold">Join Game</h1>
-            <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
+            <p className="text-sm text-text-muted">
               Enter your name to join game <span className="font-mono">{gameId}</span>
             </p>
           </div>
@@ -55,8 +52,7 @@ export function GamePage() {
               placeholder="Enter your name"
               maxLength={30}
               autoFocus
-              className="px-3 py-2 rounded-lg text-sm outline-none"
-              style={{ background: "var(--color-surface-alt)", border: "1px solid var(--color-border)" }}
+              className="px-3 py-2 rounded-lg text-sm outline-none bg-surface-alt border border-border"
             />
           </div>
           <button
@@ -81,22 +77,15 @@ export function GamePage() {
         <div className="flex flex-col items-center gap-4">
           {error ? (
             <>
-              <div
-                className="p-4 rounded-lg text-sm max-w-sm text-center"
-                style={{ background: "var(--color-danger)", color: "white" }}
-              >
+              <div className="p-4 rounded-lg text-sm max-w-sm text-center bg-danger text-white">
                 {error}
               </div>
-              <a
-                href="/"
-                className="text-sm underline"
-                style={{ color: "var(--color-text-muted)" }}
-              >
+              <a href="/" className="text-sm underline text-text-muted">
                 Back to home
               </a>
             </>
           ) : (
-            <div style={{ color: "var(--color-text-muted)" }}>
+            <div className="text-text-muted">
               {connected ? "Waiting for game state..." : "Connecting..."}
             </div>
           )}
@@ -140,10 +129,7 @@ export function GamePage() {
       <div className="flex-1 flex min-h-0">
         {/* Canvas */}
         <div className="flex-1 p-3 pt-0">
-          <div
-            className="w-full h-full rounded-xl overflow-hidden"
-            style={{ border: "1px solid var(--color-border)" }}
-          >
+          <div className="w-full h-full rounded-xl overflow-hidden border border-border">
             <GameCanvas
               gameView={gameView}
               onTileClick={selectTile}
@@ -153,22 +139,14 @@ export function GamePage() {
         </div>
 
         {/* Sidebar */}
-        <div
-          className="w-72 flex flex-col gap-3 p-3 pt-0 overflow-y-auto"
-        >
+        <div className="w-72 flex flex-col gap-3 p-3 pt-0 overflow-y-auto">
           {/* Game link when waiting for players */}
           {phase === "selecting" && gameView.others.length === 0 && (
-            <div
-              className="flex flex-col gap-1 p-3 rounded-lg"
-              style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
-            >
-              <div className="text-xs font-medium" style={{ color: "var(--color-text-muted)" }}>
+            <div className="flex flex-col gap-1 p-3 rounded-lg bg-surface border border-border">
+              <div className="text-xs font-medium text-text-muted">
                 Share this link
               </div>
-              <div
-                className="text-xs px-2 py-1.5 rounded font-mono select-all break-all"
-                style={{ background: "var(--color-surface-alt)" }}
-              >
+              <div className="text-xs px-2 py-1.5 rounded font-mono select-all break-all bg-surface-alt">
                 {window.location.origin}/game/{gameId}
               </div>
             </div>
@@ -176,10 +154,7 @@ export function GamePage() {
 
           {/* Error display */}
           {error && (
-            <div
-              className="p-3 rounded-lg text-sm"
-              style={{ background: "var(--color-danger)", color: "white" }}
-            >
+            <div className="p-3 rounded-lg text-sm bg-danger text-white">
               {error}
             </div>
           )}
@@ -194,10 +169,7 @@ export function GamePage() {
 
           {/* Word selector */}
           {phase === "selecting" && (
-            <div
-              className="p-3 rounded-lg"
-              style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
-            >
+            <div className="p-3 rounded-lg bg-surface border border-border">
               <WordSelector
                 wordList={activeWordList}
                 maxWords={gameView.config.maxWordsPerPlayer}
@@ -212,24 +184,14 @@ export function GamePage() {
           <div className="flex flex-col gap-1">
             <button
               onClick={() => setWordDebugOpen((o) => !o)}
-              className="text-left px-2 py-1 rounded text-xs font-mono"
-              style={{
-                background: "oklch(0.2 0 0 / 0.7)",
-                color: "oklch(0.9 0 0)",
-                border: "1px solid oklch(0.4 0 0 / 0.5)",
-              }}
+              className="text-left px-2 py-1 rounded text-xs font-mono bg-debug-button text-debug-text border border-debug-border"
             >
               {wordDebugOpen ? "Hide Words" : "Words"}
             </button>
             {wordDebugOpen && (
               <div
-                className="p-2 rounded-lg flex flex-col gap-1 text-xs font-mono"
-                style={{
-                  background: "oklch(0.15 0 0 / 0.85)",
-                  color: "oklch(0.9 0 0)",
-                  border: "1px solid oklch(0.4 0 0 / 0.5)",
-                  backdropFilter: "blur(8px)",
-                }}
+                className="p-2 rounded-lg flex flex-col gap-1 text-xs font-mono bg-debug-bg text-debug-text border border-debug-border"
+                style={{ backdropFilter: "blur(8px)" }}
               >
                 {gameView.config.wordList.map((word) => {
                   const enabled = !disabledWords.has(word);
@@ -250,7 +212,7 @@ export function GamePage() {
           </div>
 
           {/* Connection status */}
-          <div className="flex items-center gap-1.5 text-xs" style={{ color: "var(--color-text-muted)" }}>
+          <div className="flex items-center gap-1.5 text-xs text-text-muted">
             <span
               className="w-2 h-2 rounded-full"
               style={{ background: connected ? "var(--color-success)" : "var(--color-danger)" }}

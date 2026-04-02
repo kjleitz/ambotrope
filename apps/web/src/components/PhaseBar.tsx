@@ -20,17 +20,16 @@ interface PhaseBarProps {
 export function PhaseBar({ phase, round, onReady, onLockIn }: PhaseBarProps) {
   return (
     <div
-      className="flex items-center justify-between px-4 py-3 rounded-xl"
-      style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
+      className="flex items-center justify-between px-4 py-3 rounded-xl bg-surface border border-border"
     >
       <div className="flex flex-col gap-0.5">
         <div className="flex items-center gap-2">
           <span className="font-semibold">{PHASE_LABELS[phase]}</span>
-          <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--color-surface-alt)", color: "var(--color-text-muted)" }}>
+          <span className="text-xs px-2 py-0.5 rounded-full bg-surface-alt text-text-muted">
             Round {round}
           </span>
         </div>
-        <span className="text-sm" style={{ color: "var(--color-text-muted)" }}>
+        <span className="text-sm text-text-muted">
           {PHASE_DESCRIPTIONS[phase]}
         </span>
       </div>
@@ -38,8 +37,7 @@ export function PhaseBar({ phase, round, onReady, onLockIn }: PhaseBarProps) {
         {onLockIn && (
           <button
             onClick={onLockIn}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors"
-            style={{ background: "var(--color-success)", cursor: "pointer" }}
+            className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors bg-success cursor-pointer"
           >
             Lock In
           </button>
@@ -47,8 +45,7 @@ export function PhaseBar({ phase, round, onReady, onLockIn }: PhaseBarProps) {
         {onReady && (
           <button
             onClick={onReady}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors"
-            style={{ background: "var(--color-primary)", cursor: "pointer" }}
+            className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors bg-primary cursor-pointer"
           >
             Next Round
           </button>

@@ -1,6 +1,23 @@
 @import "tailwindcss";
 
-:root {
+@font-face {
+  font-family: "Literata";
+  src: url("./assets/fonts/Literata-Variable.woff2") format("woff2");
+  font-weight: 200 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Literata";
+  src: url("./assets/fonts/Literata-VariableItalic.woff2") format("woff2");
+  font-weight: 200 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+@theme {
+  /* Colors */
   --color-sky: oklch(0.78 0.1 230);
   --color-cloud: oklch(0.98 0.005 230);
   --color-cloud-shadow: oklch(0.88 0.02 230);
@@ -17,11 +34,98 @@
   --color-primary-hover: oklch(0.55 0.2 280);
   --color-success: oklch(0.65 0.18 150);
   --color-danger: oklch(0.6 0.2 25);
+
+  /* Debug panel colors */
+  --color-debug-bg: oklch(0.15 0 0 / 0.85);
+  --color-debug-text: oklch(0.9 0 0);
+  --color-debug-muted: oklch(0.6 0 0);
+  --color-debug-border: oklch(0.4 0 0 / 0.5);
+  --color-debug-button: oklch(0.3 0 0 / 0.6);
+  --color-debug-input: oklch(0.25 0 0);
+
+  /* Border radius */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
+
+  /* Font families */
+  --font-sans: "Literata", Georgia, serif;
+  --font-mono: ui-monospace, SFMono-Regular, monospace;
+
+  /* Font sizes */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px oklch(0.2 0 0 / 0.05);
+  --shadow-md: 0 4px 6px oklch(0.2 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px oklch(0.2 0 0 / 0.1);
+}
+
+:root {
+  /* Borders (not Tailwind utilities -- used in inline styles) */
+  --border-width: 1px;
+  --border-width-focus: 2px;
+  --border-style: solid;
+}
+
+/* Ink & Paper theme */
+[data-theme="ink"] {
+  --color-sky: oklch(1.0 0 0);
+  --color-cloud: oklch(0.99 0 0);
+  --color-cloud-shadow: oklch(0.85 0.01 260);
+  --color-hex-border: oklch(0.4 0.01 260 / 0.3);
+  --color-hex-hover: oklch(0.7 0.02 260 / 0.3);
+  --color-hex-selected: oklch(0.3 0.05 260 / 0.4);
+  --color-hex-collision: oklch(0.5 0.15 25 / 0.4);
+  --color-text: oklch(0.10 0 0);
+  --color-text-muted: oklch(0.45 0.01 260);
+  --color-surface: oklch(1.0 0 0);
+  --color-surface-alt: oklch(1.0 0 0);
+  --color-border: oklch(0.05 0 0);
+  --color-primary: oklch(0.0 0 0);
+  --color-primary-hover: oklch(0.15 0 0);
+  --color-success: oklch(0.50 0.10 150);
+  --color-danger: oklch(0.50 0.15 25);
+  --font-sans: "SF Mono", "Cascadia Code", "Fira Code", "JetBrains Mono", "Source Code Pro", ui-monospace, monospace;
+  --font-mono: "SF Mono", "Cascadia Code", "Fira Code", "JetBrains Mono", "Source Code Pro", ui-monospace, monospace;
+  --font-weight-normal: 700;
+  --border-width: 16px;
+  --border-width-focus: 16px;
+  --border-width-control: 2px;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
+  --radius-full: 0;
+
+  & .border:not(button):not(select):not(input) {
+    border-width: var(--border-width);
+  }
+  & .border-t:not(button):not(select):not(input) {
+    border-top-width: var(--border-width);
+  }
+
+  button, select, input {
+    border: var(--border-width-control) solid var(--color-border);
+    border-radius: 3px;
+  }
+
+  body {
+    font-weight: 700;
+  }
 }
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans);
   background: var(--color-sky);
   color: var(--color-text);
   min-height: 100dvh;

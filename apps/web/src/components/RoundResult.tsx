@@ -19,10 +19,7 @@ export function RoundResult({ gameView, messages }: RoundResultProps) {
   ];
 
   return (
-    <div
-      className="flex flex-col gap-3 p-4 rounded-xl"
-      style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
-    >
+    <div className="flex flex-col gap-3 p-4 rounded-xl bg-surface border border-border">
       <div className="font-semibold">
         {hasCollisions ? "Collisions detected!" : "No collisions -- everyone wins!"}
       </div>
@@ -39,7 +36,7 @@ export function RoundResult({ gameView, messages }: RoundResultProps) {
               </span>
               <span>{player.name}</span>
               {player.id === gameView.self.id && (
-                <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>(you)</span>
+                <span className="text-xs text-text-muted">(you)</span>
               )}
             </div>
           );

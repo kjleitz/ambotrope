@@ -28,6 +28,11 @@ output "lightsail_static_ip" {
   value       = aws_lightsail_static_ip.server.ip_address
 }
 
+output "server_image" {
+  description = "Container image URI configured for the server"
+  value       = var.server_image
+}
+
 output "nameservers" {
   description = "Route 53 nameservers to set at the registrar"
   value       = var.domain_enabled ? aws_route53_zone.main[0].name_servers : []

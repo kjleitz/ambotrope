@@ -6,8 +6,8 @@ domain_enabled        = false
 availability_zone     = "us-east-1a"
 instance_bundle_id    = "nano_3_0"
 instance_blueprint_id = "ubuntu_24_04"
-ssh_key_pair_name     = "your-lightsail-keypair"
-server_image          = "ghcr.io/your-org/ambotrope-server:latest"
+ssh_public_key_path   = "~/.ssh/id_ed25519.pub"
+server_image          = "ghcr.io/kjleitz/ambotrope-server:latest"
 cors_origin           = "https://www.ambotrope.com"
 
 # Tighten this before production if you have a stable office/VPN IP.

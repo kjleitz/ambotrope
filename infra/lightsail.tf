@@ -1,9 +1,14 @@
+resource "aws_lightsail_key_pair" "deployer" {
+  name       = "${var.project_name}-deployer"
+  public_key = file(pathexpand(var.ssh_public_key_path))
+}
+
 resource "aws_lightsail_instance" "server" {
   name              = "${var.project_name}-server"
   availability_zone = var.availability_zone
   blueprint_id      = var.instance_blueprint_id
   bundle_id         = var.instance_bundle_id
-  key_pair_name     = var.ssh_key_pair_name
+  key_pair_name     = aws_lightsail_key_pair.deployer.name
 
   user_data = templatefile("${path.module}/templates/cloud-init.yaml", {
     api_domain     = "api.${var.domain_name}"

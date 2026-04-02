@@ -5,7 +5,10 @@
   "scripts": {
     "test": "pnpm -r --workspace-concurrency=1 run test",
     "dev:server": "pnpm --filter @ambotrope/server dev",
-    "dev:web": "pnpm --filter @ambotrope/web dev"
+    "dev:web": "pnpm --filter @ambotrope/web dev",
+    "deploy:web": "./scripts/deploy-web.sh",
+    "deploy:server": "./scripts/deploy-server.sh",
+    "ssh": "./scripts/ssh.sh"
   },
   "devDependencies": {
     "typescript": "^5.7.0",

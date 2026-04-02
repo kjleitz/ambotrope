@@ -3,15 +3,19 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+INFRA_DIR="${ROOT_DIR}/infra"
 
-: "${IMAGE_URI:?Set IMAGE_URI to the container image configured in infra/server_image.}"
+HOST="${LIGHTSAIL_HOST:-$(terraform -chdir="${INFRA_DIR}" output -raw lightsail_static_ip)}"
+IMAGE_URI="${IMAGE_URI:-$(terraform -chdir="${INFRA_DIR}" output -raw server_image)}"
+SSH_USER="${SSH_USER:-ubuntu}"
 
+echo "Building Docker image: ${IMAGE_URI}"
 docker build -f "${ROOT_DIR}/apps/server/Dockerfile" -t "${IMAGE_URI}" "${ROOT_DIR}"
 
-if [[ "${PUSH_IMAGE:-1}" == "1" ]]; then
-  docker push "${IMAGE_URI}"
-fi
+echo "Pushing image..."
+docker push "${IMAGE_URI}"
 
-if [[ -n "${LIGHTSAIL_HOST:-}" ]]; then
-  ssh "${SSH_USER:-ubuntu}@${LIGHTSAIL_HOST}" "sudo systemctl restart ambotrope && sudo systemctl status ambotrope --no-pager"
-fi
+echo "Deploying to ${HOST}..."
+ssh "${SSH_USER}@${HOST}" "sudo docker pull ${IMAGE_URI} && sudo systemctl restart ambotrope && sudo systemctl status ambotrope --no-pager"
+
+echo "Done."

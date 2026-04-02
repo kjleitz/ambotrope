@@ -15,42 +15,46 @@ interface PhaseBarProps {
   round: number;
   onReady?: () => void;
   onLockIn?: () => void;
+  children?: React.ReactNode;
 }
 
-export function PhaseBar({ phase, round, onReady, onLockIn }: PhaseBarProps) {
+export function PhaseBar({ phase, round, onReady, onLockIn, children }: PhaseBarProps) {
   return (
     <div
-      className="flex items-center justify-between px-4 py-3 rounded-xl bg-surface border border-border"
+      className="flex flex-col gap-3 px-4 py-3 rounded-xl bg-surface border border-border"
     >
-      <div className="flex flex-col gap-0.5">
-        <div className="flex items-center gap-2">
-          <span className="font-semibold">{PHASE_LABELS[phase]}</span>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-surface-alt text-text-muted">
-            Round {round}
+      <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-0.5">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold">{PHASE_LABELS[phase]}</span>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-surface-alt text-text-muted">
+              Round {round}
+            </span>
+          </div>
+          <span className="text-sm text-text-muted">
+            {PHASE_DESCRIPTIONS[phase]}
           </span>
         </div>
-        <span className="text-sm text-text-muted">
-          {PHASE_DESCRIPTIONS[phase]}
-        </span>
+        <div className="flex gap-2">
+          {onLockIn && (
+            <button
+              onClick={onLockIn}
+              className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors bg-success cursor-pointer"
+            >
+              Lock In
+            </button>
+          )}
+          {onReady && (
+            <button
+              onClick={onReady}
+              className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors bg-primary cursor-pointer"
+            >
+              Next Round
+            </button>
+          )}
+        </div>
       </div>
-      <div className="flex gap-2">
-        {onLockIn && (
-          <button
-            onClick={onLockIn}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors bg-success cursor-pointer"
-          >
-            Lock In
-          </button>
-        )}
-        {onReady && (
-          <button
-            onClick={onReady}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors bg-primary cursor-pointer"
-          >
-            Next Round
-          </button>
-        )}
-      </div>
+      {children}
     </div>
   );
 }

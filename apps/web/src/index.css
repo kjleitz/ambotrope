@@ -1,18 +1,10 @@
 @import "tailwindcss";
 
 @font-face {
-  font-family: "Literata";
-  src: url("./assets/fonts/Literata-Variable.woff2") format("woff2");
-  font-weight: 200 900;
+  font-family: "Libertinus Mono";
+  src: url("./assets/fonts/LibertinusMono-Regular.woff2") format("woff2");
+  font-weight: 400;
   font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Literata";
-  src: url("./assets/fonts/Literata-VariableItalic.woff2") format("woff2");
-  font-weight: 200 900;
-  font-style: italic;
   font-display: swap;
 }
 
@@ -51,7 +43,7 @@
   --radius-full: 9999px;
 
   /* Font families */
-  --font-sans: "Literata", Georgia, serif;
+  --font-sans: system-ui, -apple-system, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, monospace;
 
   /* Font sizes */
@@ -93,8 +85,8 @@
   --color-primary-hover: oklch(0.15 0 0);
   --color-success: oklch(0.50 0.10 150);
   --color-danger: oklch(0.50 0.15 25);
-  --font-sans: "SF Mono", "Cascadia Code", "Fira Code", "JetBrains Mono", "Source Code Pro", ui-monospace, monospace;
-  --font-mono: "SF Mono", "Cascadia Code", "Fira Code", "JetBrains Mono", "Source Code Pro", ui-monospace, monospace;
+  --font-sans: "Libertinus Mono", ui-monospace, monospace;
+  --font-mono: "Libertinus Mono", ui-monospace, monospace;
   --font-weight-normal: 700;
   --border-width: 16px;
   --border-width-focus: 16px;
@@ -116,6 +108,17 @@
   button, select, input {
     border: var(--border-width-control) solid var(--color-border);
     border-radius: 3px;
+  }
+
+  .word-btn {
+    border-color: oklch(0.05 0 0 / 0.2);
+    transition: border-color 0.15s;
+  }
+  .word-btn:hover:not(:disabled) {
+    border-color: var(--color-border);
+  }
+  .word-btn-selected {
+    border-color: var(--color-primary);
   }
 
   body {

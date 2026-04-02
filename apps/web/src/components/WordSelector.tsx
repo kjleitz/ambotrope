@@ -20,21 +20,20 @@ export function WordSelector({ wordList, maxWords, selectedWords, onToggle, disa
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="text-sm font-medium text-text-muted">
+    <div className="flex items-center gap-3 flex-wrap">
+      <span className="text-sm font-medium text-text-muted whitespace-nowrap">
         Select up to {maxWords} words ({selected.size}/{maxWords})
-      </div>
+      </span>
       <div className="flex flex-wrap gap-2">
         {wordList.map((word) => (
           <button
             key={word}
             onClick={() => toggle(word)}
             disabled={disabled || (!selected.has(word) && selected.size >= maxWords)}
-            className="px-3 py-1.5 rounded-full text-sm transition-all"
+            className={`word-btn px-3 py-1.5 rounded-full text-sm transition-all ${selected.has(word) ? "word-btn-selected" : ""}`}
             style={{
               background: selected.has(word) ? "var(--color-primary)" : "var(--color-surface)",
               color: selected.has(word) ? "white" : "var(--color-text)",
-              borderColor: selected.has(word) ? "var(--color-primary)" : "var(--color-border)",
               opacity: disabled || (!selected.has(word) && selected.size >= maxWords) ? 0.5 : 1,
               cursor: disabled ? "not-allowed" : "pointer",
             }}

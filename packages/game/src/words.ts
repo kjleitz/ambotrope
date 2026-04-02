@@ -15,6 +15,7 @@ export const DEFAULT_WORD_LIST: string[] = [
   "fish",
   "formalwear",
   "helicopter",
+  "hipbone",
   "jelly",
   "leaf",
   "lungs",

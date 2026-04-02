@@ -115,14 +115,24 @@ export function GamePage() {
 
   return (
     <div className="flex-1 flex flex-col h-dvh">
-      {/* Phase bar */}
+      {/* Phase bar + word selector */}
       <div className="p-3">
         <PhaseBar
           phase={phase}
           round={gameView.round}
           onReady={phase === "reveal" ? ready : undefined}
           onLockIn={showLockIn ? lockIn : undefined}
-        />
+        >
+          {phase === "selecting" && (
+            <WordSelector
+              wordList={activeWordList}
+              maxWords={gameView.config.maxWordsPerPlayer}
+              selectedWords={gameView.self.selectedWords}
+              onToggle={selectWords}
+              disabled={!canSelectWords}
+            />
+          )}
+        </PhaseBar>
       </div>
 
       {/* Main area */}
@@ -165,19 +175,6 @@ export function GamePage() {
           {/* Round result */}
           {phase === "reveal" && (
             <RoundResult gameView={gameView} messages={messages} />
-          )}
-
-          {/* Word selector */}
-          {phase === "selecting" && (
-            <div className="p-3 rounded-lg bg-surface border border-border">
-              <WordSelector
-                wordList={activeWordList}
-                maxWords={gameView.config.maxWordsPerPlayer}
-                selectedWords={gameView.self.selectedWords}
-                onToggle={selectWords}
-                disabled={!canSelectWords}
-              />
-            </div>
           )}
 
           {/* Debug: word list toggle */}

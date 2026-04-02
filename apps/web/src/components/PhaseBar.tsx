@@ -5,8 +5,8 @@ const PHASE_LABELS: Record<GamePhase, string> = {
   reveal: "Results!",
 };
 
-const PHASE_DESCRIPTIONS: Record<GamePhase, string> = {
-  selecting: "Click a hex tile and pick words that describe the clouds near it. Lock in when ready.",
+const PHASE_DESCRIPTIONS: Record<GamePhase, React.ReactNode> = {
+  selecting: <>Click a hex tile and pick words that describe the clouds around it. <span className="underline">Don't choose the same tile as another teammate.</span> You can see your teammates' answers under their names. Lock in when ready!</>,
   reveal: "See where everyone landed!",
 };
 
@@ -41,7 +41,7 @@ export function PhaseBar({ phase, round, onReady, onLockIn, children }: PhaseBar
               onClick={onLockIn}
               className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors bg-success cursor-pointer"
             >
-              Lock In
+              Lock&nbsp;in
             </button>
           )}
           {onReady && (

@@ -20,6 +20,10 @@ export interface CloudParams {
   sharpnessMin: number;
   /** Maximum edge sharpness for the seeded random range. */
   sharpnessMax: number;
+  /** RGB color for clouds [r, g, b] each 0-255 */
+  cloudColor: [number, number, number];
+  /** CSS color string for the sky/background */
+  skyColor: string;
 }
 
 export const defaultCloudParams: CloudParams = {
@@ -27,6 +31,8 @@ export const defaultCloudParams: CloudParams = {
   levels: 2,
   sharpnessMin: 2.0,
   sharpnessMax: 3.5,
+  cloudColor: [255, 255, 255],
+  skyColor: "#87CEEB",
 };
 
 export interface RenderState {
@@ -115,7 +121,8 @@ export function generateCloudTexture(state: RenderState, params: CloudParams = d
   const imageData = ctx.createImageData(canvasWidth, canvasHeight);
   const data = imageData.data;
 
-  const { strategy, levels } = params;
+  const { strategy, levels, cloudColor } = params;
+  const [cr, cg, cb] = cloudColor;
   const isInkBlot = strategy === "ink-blot";
 
   for (let py = 0; py < canvasHeight; py += resolution) {
@@ -167,10 +174,9 @@ export function generateCloudTexture(state: RenderState, params: CloudParams = d
       for (let dy = 0; dy < resolution && py + dy < canvasHeight; dy++) {
         for (let dx = 0; dx < resolution && px + dx < canvasWidth; dx++) {
           const idx = ((py + dy) * canvasWidth + (px + dx)) * 4;
-          // White cloud with variable alpha
-          data[idx] = 255;
-          data[idx + 1] = 255;
-          data[idx + 2] = 255;
+          data[idx] = cr;
+          data[idx + 1] = cg;
+          data[idx + 2] = cb;
           data[idx + 3] = Math.round(cloudAlpha * 200);
         }
       }
@@ -201,11 +207,12 @@ export function renderFrame(
   ctx: CanvasRenderingContext2D,
   state: RenderState,
   tiles: TileRenderInfo[],
+  params: CloudParams = defaultCloudParams,
 ): void {
   const { canvasWidth, canvasHeight, gameGrid, cloudCanvas } = state;
 
   // Sky background
-  ctx.fillStyle = "#87CEEB";
+  ctx.fillStyle = params.skyColor;
   ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
   // Draw cloud texture

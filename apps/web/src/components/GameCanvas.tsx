@@ -10,6 +10,29 @@ import {
 } from "@/lib/renderer.ts";
 import type { RenderState, TileRenderInfo, CloudParams, CloudStrategy } from "@/lib/renderer.ts";
 
+function parseRgb(cssColor: string): [number, number, number] {
+  const el = document.createElement("div");
+  el.style.color = cssColor;
+  document.body.appendChild(el);
+  const computed = getComputedStyle(el).color;
+  document.body.removeChild(el);
+  const match = computed.match(/(\d+)/g);
+  if (match && match.length >= 3) {
+    return [Number(match[0]), Number(match[1]), Number(match[2])];
+  }
+  return [255, 255, 255];
+}
+
+function getThemeColors(): { cloudColor: [number, number, number]; skyColor: string } {
+  const styles = getComputedStyle(document.documentElement);
+  const sky = styles.getPropertyValue("--color-sky").trim();
+  const cloud = styles.getPropertyValue("--color-cloud").trim();
+  return {
+    skyColor: sky || "#87CEEB",
+    cloudColor: cloud ? parseRgb(cloud) : [255, 255, 255],
+  };
+}
+
 interface GameCanvasProps {
   gameView: PlayerView;
   onTileClick: (tileId: TileId) => void;
@@ -21,7 +44,10 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
   const renderStateRef = useRef<RenderState | null>(null);
   const [hoveredTile, setHoveredTile] = useState<TileId | null>(null);
   const [renderVersion, setRenderVersion] = useState(0);
-  const [cloudParams, setCloudParams] = useState<CloudParams>(defaultCloudParams);
+  const [cloudParams, setCloudParams] = useState<CloudParams>(() => {
+    const themeColors = getThemeColors();
+    return { ...defaultCloudParams, ...themeColors };
+  });
   const [debugOpen, setDebugOpen] = useState(false);
   const [seedOverride, setSeedOverride] = useState<number | null>(null);
 
@@ -87,7 +113,7 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
       otherSelected: isReveal && otherSelectedTiles.has(tileId) && !collisionTiles.has(tileId),
     }));
 
-    renderFrame(ctx, state, tiles);
+    renderFrame(ctx, state, tiles, cloudParams);
   }, [gameView, hoveredTile, interactive, renderVersion, cloudParams]);
 
   const handleMouseMove = useCallback(
@@ -217,7 +243,7 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
               />
             </div>
             <button
-              onClick={() => { setCloudParams(defaultCloudParams); setSeedOverride(null); }}
+              onClick={() => { setCloudParams({ ...defaultCloudParams, ...getThemeColors() }); setSeedOverride(null); }}
               className="px-2 py-1 rounded text-xs bg-debug-button border border-debug-border"
             >
               Reset

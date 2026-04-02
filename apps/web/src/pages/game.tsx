@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useGameSocket } from "@/lib/useGameSocket.ts";
 import { GameCanvas } from "@/components/GameCanvas.tsx";
@@ -7,6 +7,27 @@ import { PlayerPanel } from "@/components/PlayerPanel.tsx";
 import { PhaseBar } from "@/components/PhaseBar.tsx";
 import { RoundResult } from "@/components/RoundResult.tsx";
 import { DEFAULT_DISABLED_WORDS } from "@ambotrope/game";
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  }, [text]);
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="px-2 py-0.5 rounded text-xs text-text-muted transition-colors cursor-pointer"
+      style={{ background: "var(--color-surface-alt)" }}
+    >
+      {copied ? "Copied!" : "Copy"}
+    </button>
+  );
+}
 
 export function GamePage() {
   const { gameId } = useParams<{ gameId: string }>();
@@ -153,8 +174,11 @@ export function GamePage() {
           {/* Game link when waiting for players */}
           {phase === "selecting" && gameView.others.length === 0 && (
             <div className="flex flex-col gap-1 p-3 rounded-lg bg-surface border border-border">
-              <div className="text-xs font-medium text-text-muted">
-                Share this link
+              <div className="flex items-center justify-between">
+                <div className="text-xs font-medium text-text-muted">
+                  Share this link
+                </div>
+                <CopyButton text={`${window.location.origin}/game/${gameId}`} />
               </div>
               <div className="text-xs px-2 py-1.5 rounded font-mono select-all break-all bg-surface-alt">
                 {window.location.origin}/game/{gameId}

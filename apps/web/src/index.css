@@ -70,8 +70,8 @@
 /* Ink & Paper theme */
 [data-theme="ink"] {
   --color-sky: oklch(1.0 0 0);
-  --color-cloud: oklch(0.99 0 0);
-  --color-cloud-shadow: oklch(0.85 0.01 260);
+  --color-cloud: oklch(0.0 0 0);
+  --color-cloud-shadow: oklch(0.15 0.01 260);
   --color-hex-border: oklch(0.4 0.01 260 / 0.3);
   --color-hex-hover: oklch(0.7 0.02 260 / 0.3);
   --color-hex-selected: oklch(0.3 0.05 260 / 0.4);

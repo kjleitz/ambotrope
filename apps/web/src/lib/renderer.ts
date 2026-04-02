@@ -220,10 +220,103 @@ export function renderFrame(
     ctx.drawImage(cloudCanvas, 0, 0);
   }
 
-  // Draw hex tiles
-  for (const tile of tiles) {
+  // Build a combined silhouette path for all tiles (for outer shadow)
+  const allScreenVerts = tiles.map((tile) => {
     const vertices = getTileVertices(gameGrid, tile.tileId);
-    const screenVerts = vertices.map((v) => toScreen(v, state));
+    return vertices.map((v) => toScreen(v, state));
+  });
+
+  const hoveredIndex = tiles.findIndex((t) => t.hovering);
+
+  // --- Group shadow (excludes hovered tile so it visually separates) ---
+  const groupShadow = new OffscreenCanvas(canvasWidth, canvasHeight);
+  const gsctx = groupShadow.getContext("2d");
+  if (gsctx) {
+    for (let t = 0; t < allScreenVerts.length; t++) {
+      if (t === hoveredIndex) continue;
+      const screenVerts = allScreenVerts[t];
+      gsctx.beginPath();
+      gsctx.moveTo(screenVerts[0].x, screenVerts[0].y);
+      for (let i = 1; i < screenVerts.length; i++) {
+        gsctx.lineTo(screenVerts[i].x, screenVerts[i].y);
+      }
+      gsctx.closePath();
+      gsctx.fill();
+    }
+
+    ctx.save();
+    ctx.shadowColor = "oklch(0.2 0 0 / 0.4)";
+    ctx.shadowBlur = 20;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 4;
+    ctx.drawImage(groupShadow, 0, 0);
+    ctx.restore();
+
+    // Repaint sky + clouds over the solid fill (keep only the shadow)
+    ctx.save();
+    ctx.beginPath();
+    for (let t = 0; t < allScreenVerts.length; t++) {
+      if (t === hoveredIndex) continue;
+      const screenVerts = allScreenVerts[t];
+      ctx.moveTo(screenVerts[0].x, screenVerts[0].y);
+      for (let i = 1; i < screenVerts.length; i++) {
+        ctx.lineTo(screenVerts[i].x, screenVerts[i].y);
+      }
+      ctx.closePath();
+    }
+    ctx.clip();
+    ctx.fillStyle = params.skyColor;
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    if (cloudCanvas) {
+      ctx.drawImage(cloudCanvas, 0, 0);
+    }
+    ctx.restore();
+  }
+
+  // --- Hovered tile shadow (drawn on top, stronger shadow for "raised" effect) ---
+  if (hoveredIndex >= 0) {
+    const hoverVerts = allScreenVerts[hoveredIndex];
+    const hoverShadow = new OffscreenCanvas(canvasWidth, canvasHeight);
+    const hsctx = hoverShadow.getContext("2d");
+    if (hsctx) {
+      hsctx.beginPath();
+      hsctx.moveTo(hoverVerts[0].x, hoverVerts[0].y);
+      for (let i = 1; i < hoverVerts.length; i++) {
+        hsctx.lineTo(hoverVerts[i].x, hoverVerts[i].y);
+      }
+      hsctx.closePath();
+      hsctx.fill();
+
+      ctx.save();
+      ctx.shadowColor = "oklch(0.1 0 0 / 0.5)";
+      ctx.shadowBlur = 28;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 6;
+      ctx.drawImage(hoverShadow, 0, 0);
+      ctx.restore();
+
+      // Repaint sky + clouds over the solid fill
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(hoverVerts[0].x, hoverVerts[0].y);
+      for (let i = 1; i < hoverVerts.length; i++) {
+        ctx.lineTo(hoverVerts[i].x, hoverVerts[i].y);
+      }
+      ctx.closePath();
+      ctx.clip();
+      ctx.fillStyle = params.skyColor;
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      if (cloudCanvas) {
+        ctx.drawImage(cloudCanvas, 0, 0);
+      }
+      ctx.restore();
+    }
+  }
+
+  // --- Draw hex tiles (state fills + borders) ---
+  for (let t = 0; t < tiles.length; t++) {
+    const tile = tiles[t];
+    const screenVerts = allScreenVerts[t];
 
     ctx.beginPath();
     ctx.moveTo(screenVerts[0].x, screenVerts[0].y);
@@ -241,9 +334,6 @@ export function renderFrame(
       ctx.fill();
     } else if (tile.otherSelected) {
       ctx.fillStyle = "oklch(0.7 0.1 140 / 0.35)";
-      ctx.fill();
-    } else if (tile.hovering) {
-      ctx.fillStyle = "oklch(0.85 0.08 260 / 0.35)";
       ctx.fill();
     }
 

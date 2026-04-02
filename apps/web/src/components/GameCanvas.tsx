@@ -50,6 +50,7 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
   });
   const [debugOpen, setDebugOpen] = useState(false);
   const [seedOverride, setSeedOverride] = useState<number | null>(null);
+  const [sharpnessLocked, setSharpnessLocked] = useState(false);
 
   const activeSeed = seedOverride ?? gameView.config.seed;
 
@@ -193,7 +194,16 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
               </select>
             </div>
             <div className="flex flex-col gap-1">
-              <label><span>Sharpness</span></label>
+              <label className="flex justify-between items-center">
+                <span>Sharpness</span>
+                <button
+                  onClick={() => setSharpnessLocked((l) => !l)}
+                  className="px-1.5 py-0.5 rounded text-xs bg-debug-button border border-debug-border"
+                  style={{ opacity: sharpnessLocked ? 1 : 0.5 }}
+                >
+                  {sharpnessLocked ? "Locked" : "Lock"}
+                </button>
+              </label>
               <div className="flex items-center gap-1 text-xs text-debug-muted">
                 <span>Min</span>
                 <span className="ml-auto">{cloudParams.sharpnessMin.toFixed(1)}</span>
@@ -204,9 +214,16 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
                 max="20"
                 step="0.1"
                 value={cloudParams.sharpnessMin}
-                onChange={(e) =>
-                  setCloudParams((p) => ({ ...p, sharpnessMin: parseFloat(e.target.value) }))
-                }
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value);
+                  setCloudParams((p) => {
+                    if (sharpnessLocked) {
+                      const delta = val - p.sharpnessMin;
+                      return { ...p, sharpnessMin: val, sharpnessMax: Math.min(20, Math.max(0.1, p.sharpnessMax + delta)) };
+                    }
+                    return { ...p, sharpnessMin: val };
+                  });
+                }}
                 className="w-full"
               />
               <div className="flex items-center gap-1 text-xs text-debug-muted">
@@ -219,9 +236,16 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
                 max="20"
                 step="0.1"
                 value={cloudParams.sharpnessMax}
-                onChange={(e) =>
-                  setCloudParams((p) => ({ ...p, sharpnessMax: parseFloat(e.target.value) }))
-                }
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value);
+                  setCloudParams((p) => {
+                    if (sharpnessLocked) {
+                      const delta = val - p.sharpnessMax;
+                      return { ...p, sharpnessMax: val, sharpnessMin: Math.min(20, Math.max(0.1, p.sharpnessMin + delta)) };
+                    }
+                    return { ...p, sharpnessMax: val };
+                  });
+                }}
                 className="w-full"
               />
             </div>

@@ -313,4 +313,18 @@ test.describe("lock in and reveal", () => {
     await expect(alice.getByText("Choose your tile")).toBeVisible({ timeout: 5000 });
     await expect(alice.getByText("Round 2")).toBeVisible();
   });
+
+  test("share link is visible during reveal and new rounds", async ({ page, context }) => {
+    const { alice, bob } = await setupTwoPlayerGame(page, context);
+    await bothSelectTilesAndWords(alice, bob);
+    await bothLockIn(alice, bob);
+
+    // Share link should be visible during reveal
+    await expect(alice.getByText("Share this link")).toBeVisible();
+
+    // Start new round — share link should still be there
+    await alice.getByRole("button", { name: "Next Round" }).click();
+    await expect(alice.getByText("Choose your tile")).toBeVisible({ timeout: 5000 });
+    await expect(alice.getByText("Share this link")).toBeVisible();
+  });
 });

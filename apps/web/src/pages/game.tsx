@@ -179,20 +179,18 @@ export function GamePage() {
 
         {/* Sidebar */}
         <div className="w-72 flex flex-col gap-3 p-3 pt-0 overflow-y-auto">
-          {/* Game link when waiting for players */}
-          {phase === "selecting" && gameView.others.length === 0 && (
-            <div className="flex flex-col gap-1 p-3 rounded-lg bg-surface border border-border">
-              <div className="flex items-center justify-between">
-                <div className="text-xs font-medium text-text-muted">
-                  Share this link
-                </div>
-                <CopyButton text={`${window.location.origin}/game/${gameId}`} />
+          {/* Game link — always visible so players can invite others */}
+          <div className="flex flex-col gap-1 p-3 rounded-lg bg-surface border border-border">
+            <div className="flex items-center justify-between">
+              <div className="text-xs font-medium text-text-muted">
+                Share this link
               </div>
-              <div className="text-xs px-2 py-1.5 rounded font-mono select-all break-all bg-surface-alt">
-                {window.location.origin}/game/{gameId}
-              </div>
+              <CopyButton text={`${window.location.origin}/game/${gameId}`} />
             </div>
-          )}
+            <div className="text-xs px-2 py-1.5 rounded font-mono select-all break-all bg-surface-alt">
+              {window.location.origin}/game/{gameId}
+            </div>
+          </div>
 
           {/* Error display */}
           {error && (

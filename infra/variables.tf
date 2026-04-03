@@ -46,18 +46,6 @@ variable "availability_zone" {
   default     = "us-east-1a"
 }
 
-variable "ssh_public_key_path" {
-  description = "Path to SSH public key to import into Lightsail"
-  type        = string
-  default     = "~/.ssh/id_ed25519.pub"
-}
-
-variable "ssh_allowed_cidrs" {
-  description = "CIDR blocks allowed to SSH to the instance"
-  type        = list(string)
-  default     = ["0.0.0.0/0"]
-}
-
 variable "server_image" {
   description = "Container image that the instance should run"
   type        = string

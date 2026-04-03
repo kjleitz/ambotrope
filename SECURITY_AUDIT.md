@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This audit covers the first-party application code and infrastructure in this repository. The highest-risk issues are on the server boundary: the WebSocket endpoint accepts connections from any origin, inbound messages are not validated against the shared Zod protocol schema, and the server creates in-memory room state for arbitrary game IDs without any rate limiting or resource caps. On the infrastructure side, the default Terraform configuration exposes SSH to the entire internet.
+This audit covers the first-party application code and infrastructure in this repository. The highest-risk issues are on the server boundary: the WebSocket endpoint accepts connections from any origin, inbound messages are not validated against the shared Zod protocol schema, and the server creates in-memory room state for arbitrary game IDs without any rate limiting or resource caps. The prior SSH-exposure finding has been remediated on this branch by removing public port 22 access and replacing SSH-driven deploy control with AWS Systems Manager.
 
 ## Findings
 
@@ -56,21 +56,20 @@ This audit covers the first-party application code and infrastructure in this re
   - Add per-IP connection limits, handshake timeouts, and request rate limiting at the proxy or application layer.
   - Cap total rooms, per-room connections, and idle unauthenticated sockets.
 
-### 4. Medium: Terraform defaults expose SSH to the entire internet
+### 4. Resolved on this branch: direct SSH exposure has been removed
 
 - Affected area: infrastructure network access
 - Evidence:
-  - `infra/variables.tf:55-59` sets `ssh_allowed_cidrs` to `["0.0.0.0/0"]`.
-  - `infra/lightsail.tf:40-45` applies that value directly to public TCP port 22.
-  - `infra/terraform.tfvars.example:12-14` repeats the world-open default and only warns to tighten it later.
+  - `infra/lightsail.tf` no longer provisions a Lightsail key pair or opens public TCP port 22.
+  - `infra/variables.tf` and `infra/terraform.tfvars.example` no longer declare SSH access variables.
+  - `scripts/deploy-server.sh` now deploys through AWS Systems Manager Run Command instead of `ssh`.
 - Impact:
-  - A new deployment is internet-reachable over SSH unless the operator remembers to override the default.
-  - This increases the likelihood of password-spraying, credential-stuffing, and SSH key abuse attempts against the host.
-  - Unsafe defaults are especially risky in infrastructure because they propagate into new environments unchanged.
+  - New deployments no longer expose the host to opportunistic SSH scanning or rely on interactive shell access for routine rollout.
+  - The operational control plane now matches the intended non-SSH security posture.
 - Recommended fix:
-  - Make `ssh_allowed_cidrs` a required variable or default it to a trusted admin/VPN CIDR, not `0.0.0.0/0`.
-  - Document a secure bootstrap path for operators without a static IP.
-  - Consider disabling direct SSH entirely in favor of a managed access path if possible.
+  - Keep SSH disabled unless a new, explicitly approved access model requires it.
+  - Use AWS Systems Manager for deploy-time command execution and future host administration.
+  - Avoid reintroducing SSH-only operational dependencies in scripts or docs.
 
 ## Hardening Recommendations
 

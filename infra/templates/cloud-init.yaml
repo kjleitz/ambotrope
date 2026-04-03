@@ -5,6 +5,7 @@ package_upgrade: true
 packages:
   - docker.io
   - caddy
+  - snapd
 
 write_files:
   - path: /etc/default/${project_name}
@@ -14,6 +15,75 @@ write_files:
       NODE_ENV=production
       PORT=${server_port}
       CORS_ORIGIN=${cors_origin}
+
+  - path: /etc/default/${project_name}-ssm
+    permissions: "0600"
+    owner: root:root
+    content: |
+      AWS_REGION=${aws_region}
+      SSM_ACTIVATION_CODE=${ssm_activation_code}
+      SSM_ACTIVATION_ID=${ssm_activation_id}
+
+  - path: /usr/local/bin/${project_name}-register-ssm
+    permissions: "0700"
+    owner: root:root
+    content: |
+      #!/usr/bin/env bash
+      set -euo pipefail
+
+      MARKER_DIR="/var/lib/${project_name}"
+      MARKER_FILE="$${MARKER_DIR}/ssm-registered"
+      SERVICE_NAME="snap.amazon-ssm-agent.amazon-ssm-agent.service"
+      LOG_FILE="/var/log/${project_name}-ssm-bootstrap.log"
+
+      exec > >(tee -a "$${LOG_FILE}") 2>&1
+
+      retry() {
+        local attempts="$1"
+        local sleep_seconds="$2"
+        shift 2
+
+        local i
+        for ((i = 1; i <= attempts; i++)); do
+          if "$@"; then
+            return 0
+          fi
+          echo "Attempt $${i}/$${attempts} failed: $*"
+          sleep "$${sleep_seconds}"
+        done
+
+        return 1
+      }
+
+      if [[ -f "$${MARKER_FILE}" ]]; then
+        exit 0
+      fi
+
+      . /etc/default/${project_name}-ssm
+
+      mkdir -p "$${MARKER_DIR}"
+
+      systemctl enable snapd.service snapd.socket
+      systemctl start snapd.service snapd.socket
+      retry 30 2 snap wait system seed.loaded
+
+      if ! snap list amazon-ssm-agent >/dev/null 2>&1; then
+        retry 10 5 snap install amazon-ssm-agent --classic
+      fi
+
+      systemctl stop "$${SERVICE_NAME}" || true
+
+      retry 5 5 /snap/amazon-ssm-agent/current/amazon-ssm-agent \
+        -register \
+        -code "$${SSM_ACTIVATION_CODE}" \
+        -id "$${SSM_ACTIVATION_ID}" \
+        -region "$${AWS_REGION}"
+
+      systemctl enable "$${SERVICE_NAME}"
+      systemctl restart "$${SERVICE_NAME}"
+
+      touch "$${MARKER_FILE}"
+      rm -f /etc/default/${project_name}-ssm
 
   - path: /etc/systemd/system/${project_name}.service
     permissions: "0644"
@@ -56,6 +126,7 @@ write_files:
 runcmd:
   - systemctl daemon-reload
   - systemctl enable --now docker
+  - /usr/local/bin/${project_name}-register-ssm
   - systemctl enable caddy
   - systemctl restart caddy
   - systemctl enable --now ${project_name}.service

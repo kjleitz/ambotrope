@@ -32,7 +32,7 @@ Alternatives considered:
 
 - **Lightsail Container Service** ($7/mo) — has a managed proxy between the internet and your container. WebSocket upgrade works, but you can't configure idle timeouts or sticky sessions. Probably fine for short game sessions, but less control.
 - **ECS Fargate + ALB** (~$27/mo) — full control, configurable ALB, sticky sessions, rolling deploys. The ALB alone is $16/mo. Overkill for a single-instance game server.
-- **Lightsail instance** (~$5/mo) — direct traffic, full control, cheapest. Deploy is just SSH + docker pull + restart. The tradeoff is a brief blip on redeploy (process restart), which is fine for occasional deploys of a game with short sessions.
+- **Lightsail instance** (~$5/mo) — direct traffic, full control, cheapest. Deploy is just image push + managed restart. The tradeoff is a brief blip on redeploy (process restart), which is fine for occasional deploys of a game with short sessions.
 
 ## Components
 
@@ -54,7 +54,7 @@ A single Lightsail instance running Docker. The game server runs as a systemd se
 Resources:
 - **Lightsail instance** — `nano_3_0` ($5/mo: 512MB RAM, 2 vCPU burst, 1TB transfer)
 - **Lightsail static IP** — stable IP for DNS
-- **Lightsail firewall** — allow 443 (HTTPS) and 22 (SSH) inbound
+- **Lightsail firewall** — allow 80/443 inbound, no direct SSH exposure
 
 The instance runs:
 - Docker with the game server image
@@ -127,8 +127,6 @@ infra/
 | `domain_enabled` | `false` | Enable after buying domain + pointing nameservers |
 | `instance_bundle_id` | `nano_3_0` | Lightsail instance size ($5/mo) |
 | `instance_blueprint_id` | `ubuntu_24_04` | Lightsail OS image |
-| `ssh_key_pair_name` | (required) | Lightsail SSH key pair name |
-
 ## Deployment Scripts
 
 ### `scripts/deploy-web.sh`
@@ -139,9 +137,7 @@ infra/
 ### `scripts/deploy-server.sh`
 1. `docker build -t ambotrope-server apps/server/`
 2. Push to GitHub Container Registry (or build on the instance directly)
-3. SSH into instance: `docker pull` + `docker compose up -d` (systemd restarts automatically)
-
-Alternative: just `git pull` on the instance and rebuild there. Simpler if you don't want a container registry.
+3. Use AWS Systems Manager Run Command to `docker pull` and restart the systemd service
 
 ## Estimated Costs
 

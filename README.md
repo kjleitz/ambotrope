@@ -85,15 +85,8 @@ pnpm test          # Run all tests
 ### Deploying
 
 ```bash
-pnpm deploy:server   # Build + push Docker image, restart server
+pnpm deploy:server   # Build + push Docker image, restart server via SSM Run Command
 pnpm deploy:web      # Build frontend, sync to S3, invalidate CloudFront
-```
-
-### Server access
-
-```bash
-pnpm ssh                           # SSH into the Lightsail instance
-pnpm ssh -- "docker logs ambotrope"  # Run a command remotely
 ```
 
 ## All pnpm Scripts
@@ -104,6 +97,5 @@ pnpm ssh -- "docker logs ambotrope"  # Run a command remotely
 | `pnpm dev:web` | Start frontend dev server (Vite) |
 | `pnpm test` | Run all tests across all packages |
 | `pnpm deploy:web` | Build and deploy frontend to S3/CloudFront |
-| `pnpm deploy:server` | Build, push, and deploy server to Lightsail |
-| `pnpm ssh` | SSH into the Lightsail instance |
+| `pnpm deploy:server` | Build, push, and restart the server via AWS Systems Manager |
 | `pnpm docker:login` | Auth Docker with GHCR via gh CLI |

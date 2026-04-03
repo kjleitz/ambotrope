@@ -33,6 +33,11 @@ output "server_image" {
   value       = var.server_image
 }
 
+output "ssm_activation_id" {
+  description = "SSM hybrid activation ID used to register the Lightsail host"
+  value       = aws_ssm_activation.server.id
+}
+
 output "nameservers" {
   description = "Route 53 nameservers to set at the registrar"
   value       = var.domain_enabled ? aws_route53_zone.main[0].name_servers : []

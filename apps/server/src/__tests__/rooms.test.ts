@@ -348,8 +348,10 @@ describe("rooms", () => {
       send(h1, { type: "lock_in" });
       send(h2, { type: "lock_in" });
 
-      // Start new round
+      // Both players ready up to start new round
       send(h1, { type: "ready" });
+      expect(getPhase(m1)).toBe("reveal"); // still reveal — waiting for h2
+      send(h2, { type: "ready" });
       expect(getPhase(m1)).toBe("selecting");
 
       const latestState = gameStateMessages(m1).findLast(

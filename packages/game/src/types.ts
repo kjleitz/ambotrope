@@ -18,6 +18,7 @@ export interface PlayerState {
   selectedTile: TileId | null;
   selectedWords: string[];
   lockedIn: boolean;
+  readyForNext: boolean;
 }
 
 export interface GameState {
@@ -41,6 +42,7 @@ export interface PlayerView {
     name: string;
     selectedWords: string[];
     lockedIn: boolean;
+    readyForNext: boolean;
     hasSelectedTile: boolean;
     selectedTile: TileId | null; // only populated in reveal phase
   }>;

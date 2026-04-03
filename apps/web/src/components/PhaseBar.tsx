@@ -14,12 +14,13 @@ interface PhaseBarProps {
   phase: GamePhase;
   round: number;
   onReady?: () => void;
+  othersReady?: boolean;
   onLockIn?: () => void;
   canLockIn?: boolean;
   children?: React.ReactNode;
 }
 
-export function PhaseBar({ phase, round, onReady, onLockIn, canLockIn = true, children }: PhaseBarProps) {
+export function PhaseBar({ phase, round, onReady, othersReady, onLockIn, canLockIn = true, children }: PhaseBarProps) {
   return (
     <div
       className="flex flex-col gap-3 px-4 py-3 rounded-xl bg-surface border border-border"
@@ -50,10 +51,15 @@ export function PhaseBar({ phase, round, onReady, onLockIn, canLockIn = true, ch
           {onReady && (
             <button
               onClick={onReady}
-              className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors bg-primary cursor-pointer"
+              className={`px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors cursor-pointer ${othersReady ? "bg-success animate-nudge" : "bg-primary"}`}
             >
-              Next Round
+              {othersReady ? "Continue" : "Next Round"}
             </button>
+          )}
+          {phase === "reveal" && !onReady && (
+            <span className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-primary opacity-50">
+              Waiting…
+            </span>
           )}
         </div>
       </div>

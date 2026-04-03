@@ -16,6 +16,8 @@ export {
   lockIn,
   allLockedIn,
   revealRound,
+  markReady,
+  allReady,
   startNewRound,
   getPlayerView,
   scoreRound,

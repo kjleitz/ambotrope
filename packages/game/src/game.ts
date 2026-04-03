@@ -46,6 +46,7 @@ export function addPlayer(
     selectedTile: null,
     selectedWords: [],
     lockedIn: false,
+    readyForNext: false,
   };
 
   return {
@@ -157,6 +158,28 @@ export function revealRound(state: GameState): GameState {
   return { ...state, phase: "reveal" };
 }
 
+export function markReady(state: GameState, playerId: string): GameState {
+  if (state.phase !== "reveal") {
+    throw new Error("Can only mark ready during reveal phase");
+  }
+  const player = state.players[playerId];
+  if (!player) {
+    throw new Error(`Player ${playerId} not found`);
+  }
+  return {
+    ...state,
+    players: {
+      ...state.players,
+      [playerId]: { ...player, readyForNext: true },
+    },
+  };
+}
+
+export function allReady(state: GameState): boolean {
+  const players = Object.values(state.players);
+  return players.length >= 1 && players.every((p) => p.readyForNext);
+}
+
 export function startNewRound(state: GameState): GameState {
   if (state.phase !== "reveal") {
     throw new Error("Can only start a new round from reveal phase");
@@ -169,6 +192,7 @@ export function startNewRound(state: GameState): GameState {
       selectedTile: null,
       selectedWords: [],
       lockedIn: false,
+      readyForNext: false,
     };
   }
 
@@ -198,6 +222,7 @@ export function getPlayerView(
       name: p.name,
       selectedWords: p.selectedWords,
       lockedIn: p.lockedIn,
+      readyForNext: p.readyForNext,
       hasSelectedTile: p.selectedTile !== null,
       selectedTile: isReveal ? p.selectedTile : null,
     }));

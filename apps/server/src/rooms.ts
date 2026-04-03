@@ -8,6 +8,8 @@ import {
   lockIn,
   allLockedIn,
   revealRound,
+  markReady,
+  allReady,
   startNewRound,
   getPlayerView,
   scoreRound,
@@ -262,10 +264,15 @@ function handleClientMessage(
       if (!pid) throw new Error("Not joined");
 
       if (room.gameState.phase === "reveal") {
-        room.gameState = startNewRound(room.gameState);
-        growGridIfNeeded(room);
-        broadcastToRoom(room, { type: "phase_changed", payload: { phase: "selecting" } });
+        room.gameState = markReady(room.gameState, pid);
         sendGameStateToAll(room);
+
+        if (allReady(room.gameState)) {
+          room.gameState = startNewRound(room.gameState);
+          growGridIfNeeded(room);
+          broadcastToRoom(room, { type: "phase_changed", payload: { phase: "selecting" } });
+          sendGameStateToAll(room);
+        }
       }
       break;
     }

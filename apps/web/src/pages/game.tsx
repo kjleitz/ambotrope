@@ -148,7 +148,8 @@ export function GamePage() {
         <PhaseBar
           phase={phase}
           round={gameView.round}
-          onReady={phase === "reveal" ? ready : undefined}
+          onReady={phase === "reveal" && !gameView.self.readyForNext ? ready : undefined}
+          othersReady={phase === "reveal" && gameView.others.some((o) => o.readyForNext)}
           onLockIn={showLockIn ? lockIn : undefined}
           canLockIn={!!gameView.self.selectedTile}
         >

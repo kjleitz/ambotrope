@@ -39,6 +39,14 @@ infra/       — Terraform (planned)
 - If you notice a bug or broken behavior but can't or don't want to fix it now, file a GitHub issue.
 - Same for feature requests — create an issue so it doesn't get lost.
 
+## Workflow Rules
+
+- Run `pnpm test` after substantial changes before committing.
+- When adding/removing directories under `packages/`, `apps/`, `scripts/`, etc., update the project structure section in `README.md`.
+- When adding/removing/renaming pnpm scripts in `package.json`, update the scripts table in `README.md`.
+- Always add Playwright e2e tests for any UI change.
+- Skills for this project belong in `.claude/skills/` in the repo, not `~/.claude/skills/`.
+
 ## Commands
 
 - `pnpm test` — run all tests across all packages

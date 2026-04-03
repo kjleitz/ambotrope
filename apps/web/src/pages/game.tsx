@@ -120,6 +120,13 @@ export function GamePage() {
   const canSelectWords = phase === "selecting" && !gameView.self.lockedIn;
   const showLockIn = phase === "selecting" && !gameView.self.lockedIn;
 
+  function handleSelectTile(tileId: string) {
+    if (gameView.self.selectedTile && tileId !== gameView.self.selectedTile) {
+      selectWords([]);
+    }
+    selectTile(tileId);
+  }
+
   const activeWordList = gameView.config.wordList.filter((w) => !disabledWords.has(w));
 
   function toggleWord(word: string) {
@@ -163,7 +170,7 @@ export function GamePage() {
           <div className="w-full h-full rounded-xl overflow-hidden border border-border">
             <GameCanvas
               gameView={gameView}
-              onTileClick={selectTile}
+              onTileClick={handleSelectTile}
               interactive={canSelectTile}
             />
           </div>

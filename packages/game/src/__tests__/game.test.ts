@@ -38,9 +38,9 @@ function setupReveal(): GameState {
   state = selectTile(state, "p1", "0,0");
   state = selectTile(state, "p2", "1,0");
   state = selectTile(state, "p3", "0,1");
-  state = selectWords(state, "p1", ["Batman", "Ball"]);
-  state = selectWords(state, "p2", ["Maraca", "Egg"]);
-  state = selectWords(state, "p3", ["Lungs"]);
+  state = selectWords(state, "p1", ["batman", "butterfly"]);
+  state = selectWords(state, "p2", ["maraca", "egg"]);
+  state = selectWords(state, "p3", ["lungs"]);
   state = lockIn(state, "p1");
   state = lockIn(state, "p2");
   state = lockIn(state, "p3");
@@ -127,21 +127,21 @@ describe("selectTile", () => {
 describe("selectWords", () => {
   it("sets words during selecting", () => {
     let state = setupSelecting();
-    state = selectWords(state, "p1", ["Batman", "Ball"]);
-    expect(state.players["p1"].selectedWords).toEqual(["Batman", "Ball"]);
+    state = selectWords(state, "p1", ["batman", "beard"]);
+    expect(state.players["p1"].selectedWords).toEqual(["batman", "beard"]);
   });
 
   it("allows selecting words before selecting a tile", () => {
     let state = setupSelecting();
-    state = selectWords(state, "p1", ["Batman"]);
-    expect(state.players["p1"].selectedWords).toEqual(["Batman"]);
+    state = selectWords(state, "p1", ["batman"]);
+    expect(state.players["p1"].selectedWords).toEqual(["batman"]);
     expect(state.players["p1"].selectedTile).toBeNull();
   });
 
   it("throws for too many words", () => {
     const state = setupSelecting();
     expect(() =>
-      selectWords(state, "p1", ["Batman", "Maraca", "Ball", "Taco"]),
+      selectWords(state, "p1", ["batman", "maraca", "beard", "🌮"]),
     ).toThrow("more than 3");
   });
 
@@ -154,7 +154,7 @@ describe("selectWords", () => {
 
   it("throws in wrong phase", () => {
     const state = setupReveal();
-    expect(() => selectWords(state, "p1", ["Batman"])).toThrow("selecting");
+    expect(() => selectWords(state, "p1", ["batman"])).toThrow("selecting");
   });
 });
 
@@ -256,11 +256,11 @@ describe("getPlayerView", () => {
 
   it("shows words in real time during selecting", () => {
     let state = setupSelecting();
-    state = selectWords(state, "p1", ["Batman"]);
-    state = selectWords(state, "p2", ["Maraca"]);
+    state = selectWords(state, "p1", ["batman"]);
+    state = selectWords(state, "p2", ["maraca"]);
     const view = getPlayerView(state, "p1");
     const bob = view.others.find((o) => o.id === "p2");
-    expect(bob?.selectedWords).toEqual(["Maraca"]);
+    expect(bob?.selectedWords).toEqual(["maraca"]);
   });
 });
 

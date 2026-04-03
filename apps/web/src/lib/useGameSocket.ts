@@ -9,8 +9,14 @@ interface GameSocketState {
   messages: ServerMessage[];
 }
 
+interface OptimisticSelf {
+  selectedTile: string | null;
+  selectedWords: string[] | null;
+}
+
 export function useGameSocket(gameId: string, playerName: string | null) {
   const wsRef = useRef<WebSocket | null>(null);
+  const optimisticRef = useRef<OptimisticSelf>({ selectedTile: null, selectedWords: null });
   const [state, setState] = useState<GameSocketState>({
     gameView: null,
     connected: false,
@@ -43,7 +49,27 @@ export function useGameSocket(gameId: string, playerName: string | null) {
         const next = { ...s, messages: [...s.messages, msg] };
 
         if (msg.type === "game_state") {
-          next.gameView = msg.payload;
+          const serverView = msg.payload;
+          const opt = optimisticRef.current;
+
+          // Clear optimistic values once the server has caught up
+          if (opt.selectedTile !== null && serverView.self.selectedTile === opt.selectedTile) {
+            opt.selectedTile = null;
+          }
+          if (opt.selectedWords !== null && JSON.stringify(serverView.self.selectedWords) === JSON.stringify(opt.selectedWords)) {
+            opt.selectedWords = null;
+          }
+
+          // Overlay any remaining optimistic values onto the server state
+          const self = { ...serverView.self };
+          if (opt.selectedTile !== null) {
+            self.selectedTile = opt.selectedTile;
+          }
+          if (opt.selectedWords !== null) {
+            self.selectedWords = opt.selectedWords;
+          }
+
+          next.gameView = { ...serverView, self };
         }
         if (msg.type === "error") {
           next.error = msg.payload.message;
@@ -74,12 +100,38 @@ export function useGameSocket(gameId: string, playerName: string | null) {
   }, []);
 
   const selectTile = useCallback(
-    (tileId: string) => send({ type: "select_tile", payload: { tileId } }),
+    (tileId: string) => {
+      optimisticRef.current.selectedTile = tileId;
+      setState((s) => {
+        if (!s.gameView) return s;
+        return {
+          ...s,
+          gameView: {
+            ...s.gameView,
+            self: { ...s.gameView.self, selectedTile: tileId },
+          },
+        };
+      });
+      send({ type: "select_tile", payload: { tileId } });
+    },
     [send],
   );
 
   const selectWords = useCallback(
-    (words: string[]) => send({ type: "select_words", payload: { words } }),
+    (words: string[]) => {
+      optimisticRef.current.selectedWords = words;
+      setState((s) => {
+        if (!s.gameView) return s;
+        return {
+          ...s,
+          gameView: {
+            ...s.gameView,
+            self: { ...s.gameView.self, selectedWords: words },
+          },
+        };
+      });
+      send({ type: "select_words", payload: { words } });
+    },
     [send],
   );
 

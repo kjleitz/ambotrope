@@ -244,8 +244,8 @@ describe("rooms", () => {
 
       send(h1, { type: "select_tile", payload: { tileId: tiles[0] } });
       send(h2, { type: "select_tile", payload: { tileId: tiles[1] } });
-      send(h1, { type: "select_words", payload: { words: ["Batman"] } });
-      send(h2, { type: "select_words", payload: { words: ["Maraca"] } });
+      send(h1, { type: "select_words", payload: { words: ["batman"] } });
+      send(h2, { type: "select_words", payload: { words: ["maraca"] } });
 
       send(h1, { type: "lock_in" });
       expect(getPhase(m1)).toBe("selecting"); // not yet
@@ -289,7 +289,7 @@ describe("rooms", () => {
     it("shows words in real time during selecting", () => {
       const { h2, m1 } = setupTwoPlayers();
 
-      send(h2, { type: "select_words", payload: { words: ["Maraca"] } });
+      send(h2, { type: "select_words", payload: { words: ["maraca"] } });
 
       const selectingStates = gameStateMessages(m1).filter(
         (m) => m.type === "game_state" && m.payload.phase === "selecting",
@@ -297,7 +297,7 @@ describe("rooms", () => {
       const lastState = selectingStates[selectingStates.length - 1];
       if (lastState.type === "game_state") {
         const bob = lastState.payload.others[0];
-        expect(bob.selectedWords).toEqual(["Maraca"]);
+        expect(bob.selectedWords).toEqual(["maraca"]);
       }
     });
 

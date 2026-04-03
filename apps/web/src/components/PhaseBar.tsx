@@ -6,7 +6,7 @@ const PHASE_LABELS: Record<GamePhase, string> = {
 };
 
 const PHASE_DESCRIPTIONS: Record<GamePhase, React.ReactNode> = {
-  selecting: <>Click a hex tile and pick words that describe the clouds around it. <span className="underline">Don't choose the same tile as another teammate.</span> You can see your teammates' answers under their names. Lock in when ready!</>,
+  selecting: <><strong>Objective:</strong> EVERY PLAYER SELECTS A DIFFERENT TILE. <strong>Rule:</strong> Don't talk about where your tile is. <strong>Step 1:</strong> Choose a tile. <strong>Step 2:</strong> Pick 3 words for blots around your tile. <strong>Step 3:</strong> Look at the words your teammates chose. <strong>Step 4:</strong> Switch your tile if someone has already chosen it. <strong>Done?</strong> Use the "Lock&nbsp;in" button.</>,
   reveal: "See where everyone landed!",
 };
 

@@ -41,6 +41,19 @@ export function WordSelector({ wordList, maxWords, selectedWords, onToggle, disa
             {word}
           </button>
         ))}
+        <button
+          onClick={() => onToggle([])}
+          disabled={disabled || selected.size === 0}
+          className="word-btn px-3 py-1.5 rounded-full text-sm transition-all"
+          style={{
+            background: "var(--color-danger)",
+            color: "white",
+            opacity: disabled || selected.size === 0 ? 0.5 : 1,
+            cursor: disabled || selected.size === 0 ? "not-allowed" : "pointer",
+          }}
+        >
+          Clear
+        </button>
       </div>
     </div>
   );

@@ -1,10 +1,34 @@
 @import "tailwindcss";
 
 @font-face {
-  font-family: "Libertinus Mono";
-  src: url("./assets/fonts/LibertinusMono-Regular.woff2") format("woff2");
+  font-family: "DM Mono";
+  src: url("./assets/fonts/DMMono-Regular.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Mono";
+  src: url("./assets/fonts/DMMono-Italic.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Mono";
+  src: url("./assets/fonts/DMMono-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Mono";
+  src: url("./assets/fonts/DMMono-MediumItalic.woff2") format("woff2");
+  font-weight: 500;
+  font-style: italic;
   font-display: swap;
 }
 
@@ -85,9 +109,9 @@
   --color-primary-hover: oklch(0.15 0 0);
   --color-success: oklch(0.50 0.10 150);
   --color-danger: oklch(0.50 0.15 25);
-  --font-sans: "Libertinus Mono", ui-monospace, monospace;
-  --font-mono: "Libertinus Mono", ui-monospace, monospace;
-  --font-weight-normal: 700;
+  --font-sans: "DM Mono", ui-monospace, monospace;
+  --font-mono: "DM Mono", ui-monospace, monospace;
+  --font-weight-normal: 400;
   --border-width: 16px;
   --border-width-focus: 16px;
   --border-width-control: 2px;
@@ -122,7 +146,7 @@
   }
 
   body {
-    font-weight: 700;
+    font-weight: 400;
   }
 }
 

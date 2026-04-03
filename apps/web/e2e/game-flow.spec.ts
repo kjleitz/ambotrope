@@ -45,8 +45,8 @@ async function bothSelectTilesAndWords(alice: Page, bob: Page) {
   await clickTile(bob, 60, 0);
   await expect(bob.locator(".rounded-lg").filter({ hasText: "You" }).getByText("Tile selected")).toBeVisible({ timeout: 3000 });
 
-  await alice.getByRole("button", { name: "Batman" }).click();
-  await bob.getByRole("button", { name: "Maraca" }).click();
+  await alice.getByRole("button", { name: "batman" }).click();
+  await bob.getByRole("button", { name: "maraca" }).click();
 }
 
 async function bothLockIn(alice: Page, bob: Page) {
@@ -91,9 +91,9 @@ test.describe("single player start", () => {
     await clickTile(page, 0, 0);
     await expect(page.getByText("Tile selected")).toBeVisible({ timeout: 3000 });
 
-    await page.getByRole("button", { name: "Batman" }).click();
+    await page.getByRole("button", { name: "batman" }).click();
     const selfCard = page.locator(".rounded-lg").filter({ hasText: "You" });
-    await expect(selfCard.locator("span.rounded-full", { hasText: "Batman" })).toBeVisible();
+    await expect(selfCard.locator("span.rounded-full", { hasText: "batman" })).toBeVisible();
   });
 
   test("both players in selecting when second joins", async ({ page, context }) => {
@@ -123,36 +123,96 @@ test.describe("selecting phase", () => {
     const { alice } = await setupTwoPlayerGame(page, context);
 
     await expect(alice.getByText("Select up to", { exact: false })).toBeVisible();
-    await expect(alice.getByRole("button", { name: "Batman" })).toBeVisible();
+    await expect(alice.getByRole("button", { name: "batman" })).toBeVisible();
   });
 
   test("can select words before selecting a tile", async ({ page, context }) => {
     const { alice } = await setupTwoPlayerGame(page, context);
 
-    await alice.getByRole("button", { name: "Batman" }).click();
+    await alice.getByRole("button", { name: "batman" }).click();
 
     const selfCard = alice.locator(".rounded-lg").filter({ hasText: "You" });
-    await expect(selfCard.locator("span.rounded-full", { hasText: "Batman" })).toBeVisible();
+    await expect(selfCard.locator("span.rounded-full", { hasText: "batman" })).toBeVisible();
   });
 
   test("can select words and they appear on player card", async ({ page, context }) => {
     const { alice } = await setupTwoPlayerGame(page, context);
 
-    await alice.getByRole("button", { name: "Batman" }).click();
-    await alice.getByRole("button", { name: "Egg", exact: true }).click();
+    await alice.getByRole("button", { name: "batman" }).click();
+    await alice.getByRole("button", { name: "egg", exact: true }).click();
 
     const selfCard = alice.locator(".rounded-lg").filter({ hasText: "You" });
-    await expect(selfCard.locator("span.rounded-full", { hasText: "Batman" })).toBeVisible();
-    await expect(selfCard.locator("span.rounded-full", { hasText: "Egg" })).toBeVisible();
+    await expect(selfCard.locator("span.rounded-full", { hasText: "batman" })).toBeVisible();
+    await expect(selfCard.locator("span.rounded-full", { hasText: "egg" })).toBeVisible();
   });
 
   test("other player's words appear in real time", async ({ page, context }) => {
     const { alice, bob } = await setupTwoPlayerGame(page, context);
 
-    await bob.getByRole("button", { name: "Maraca" }).click();
+    await bob.getByRole("button", { name: "maraca" }).click();
 
     const bobCard = alice.locator(".rounded-lg").filter({ hasText: "Bob" });
-    await expect(bobCard.locator("span.rounded-full", { hasText: "Maraca" })).toBeVisible({ timeout: 3000 });
+    await expect(bobCard.locator("span.rounded-full", { hasText: "maraca" })).toBeVisible({ timeout: 3000 });
+  });
+});
+
+test.describe("optimistic updates and clear", () => {
+  test("tile selection appears immediately without waiting for server", async ({ page, context }) => {
+    const { alice } = await setupTwoPlayerGame(page, context);
+
+    await clickTile(alice, 0, 0);
+    // Should appear within 500ms (optimistic), not seconds (server round-trip)
+    await expect(alice.getByText("Tile selected")).toBeVisible({ timeout: 500 });
+  });
+
+  test("word selection appears on player card immediately", async ({ page, context }) => {
+    const { alice } = await setupTwoPlayerGame(page, context);
+
+    await alice.getByRole("button", { name: "batman" }).click();
+    const selfCard = alice.locator(".rounded-lg").filter({ hasText: "You" });
+    // Should appear within 500ms (optimistic)
+    await expect(selfCard.locator("span.rounded-full", { hasText: "batman" })).toBeVisible({ timeout: 500 });
+  });
+
+  test("switching tiles clears word selections", async ({ page, context }) => {
+    const { alice } = await setupTwoPlayerGame(page, context);
+
+    await clickTile(alice, 0, 0);
+    await expect(alice.getByText("Tile selected")).toBeVisible({ timeout: 3000 });
+
+    await alice.getByRole("button", { name: "batman" }).click();
+    await alice.getByRole("button", { name: "egg", exact: true }).click();
+    const selfCard = alice.locator(".rounded-lg").filter({ hasText: "You" });
+    await expect(selfCard.locator("span.rounded-full", { hasText: "batman" })).toBeVisible();
+
+    // Click a different tile (large offset to guarantee a different hex)
+    await clickTile(alice, 0, -120);
+
+    // Words should be cleared
+    await expect(selfCard.locator("span.rounded-full", { hasText: "batman" })).not.toBeVisible({ timeout: 3000 });
+    await expect(selfCard.locator("span.rounded-full", { hasText: "egg" })).not.toBeVisible({ timeout: 3000 });
+  });
+
+  test("clear button removes all selected words", async ({ page, context }) => {
+    const { alice } = await setupTwoPlayerGame(page, context);
+
+    await alice.getByRole("button", { name: "batman" }).click();
+    await alice.getByRole("button", { name: "egg", exact: true }).click();
+    const selfCard = alice.locator(".rounded-lg").filter({ hasText: "You" });
+    await expect(selfCard.locator("span.rounded-full", { hasText: "batman" })).toBeVisible();
+
+    await alice.getByRole("button", { name: "Clear" }).click();
+
+    await expect(selfCard.locator("span.rounded-full", { hasText: "batman" })).not.toBeVisible({ timeout: 3000 });
+    await expect(selfCard.locator("span.rounded-full", { hasText: "egg" })).not.toBeVisible({ timeout: 3000 });
+  });
+
+  test("clear button is disabled when no words selected", async ({ page, context }) => {
+    const { alice } = await setupTwoPlayerGame(page, context);
+
+    const clearBtn = alice.getByRole("button", { name: "Clear" });
+    await expect(clearBtn).toBeVisible();
+    await expect(clearBtn).toBeDisabled();
   });
 });
 

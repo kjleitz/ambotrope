@@ -111,8 +111,9 @@ export function selectWords(
       `Cannot select more than ${state.config.maxWordsPerPlayer} words`,
     );
   }
+  const wordListLower = state.config.wordList.map((w) => w.toLowerCase());
   for (const word of words) {
-    if (!state.config.wordList.includes(word)) {
+    if (!wordListLower.includes(word.toLowerCase())) {
       throw new Error(`Word "${word}" is not in the word list`);
     }
   }

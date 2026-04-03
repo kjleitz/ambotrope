@@ -36,6 +36,6 @@ test("ink theme: buttons have thin borders, panels have thick borders", async ({
   expect(buttonBorder).toBe("2px");
   expect(inputBorder).toBe("2px");
 
-  // Card panels should be thick (8px)
-  expect(cardBorder).toBe("8px");
+  // Card panels should be thick (16px)
+  expect(cardBorder).toBe("16px");
 });

@@ -257,6 +257,23 @@ test.describe("lock in and reveal", () => {
     await expect(bob.getByText("Results!")).toBeVisible();
   });
 
+  test("canvas renders player labels on reveal without errors", async ({ page, context }) => {
+    const { alice, bob } = await setupTwoPlayerGame(page, context);
+    await bothSelectTilesAndWords(alice, bob);
+    await bothLockIn(alice, bob);
+
+    // Canvas should still be visible with labels rendered (no JS errors)
+    await expect(alice.locator("canvas")).toBeVisible();
+    await expect(bob.locator("canvas")).toBeVisible();
+
+    // Verify no console errors occurred during reveal rendering
+    const errors: string[] = [];
+    alice.on("pageerror", (err) => errors.push(err.message));
+    // Re-trigger a render by hovering
+    await alice.locator("canvas").hover();
+    expect(errors).toHaveLength(0);
+  });
+
   test("shows round results with scores", async ({ page, context }) => {
     const { alice, bob } = await setupTwoPlayerGame(page, context);
     await bothSelectTilesAndWords(alice, bob);

@@ -195,6 +195,12 @@ function toScreen(point: Point, state: RenderState): { x: number; y: number } {
   };
 }
 
+export interface TileLabel {
+  name: string;
+  words: string[];
+  isSelf: boolean;
+}
+
 export interface TileRenderInfo {
   tileId: TileId;
   selected: boolean;
@@ -202,6 +208,7 @@ export interface TileRenderInfo {
   pressing: boolean;
   collision: boolean;
   otherSelected: boolean;
+  labels: TileLabel[];
 }
 
 export function renderFrame(
@@ -401,6 +408,41 @@ export function renderFrame(
     ctx.strokeStyle = "oklch(0.6 0.05 230 / 0.5)";
     ctx.lineWidth = 1.5;
     ctx.stroke();
+
+    // Draw player labels inside hex during reveal
+    if (tile.labels.length > 0) {
+      const cx = screenVerts.reduce((s, v) => s + v.x, 0) / screenVerts.length;
+      const cy = screenVerts.reduce((s, v) => s + v.y, 0) / screenVerts.length;
+
+      const labelCount = tile.labels.length;
+      const baseSize = state.scale * 8;
+      const fontSize = Math.max(8, baseSize / Math.max(1, labelCount * 0.7));
+
+      ctx.save();
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      const totalLines = tile.labels.reduce((n, l) => n + 1 + (l.words.length > 0 ? 1 : 0), 0);
+      const lineHeight = fontSize * 1.3;
+      let y = cy - ((totalLines - 1) * lineHeight) / 2;
+
+      for (const label of tile.labels) {
+        // Player name
+        ctx.font = `bold ${fontSize}px var(--font-mono, monospace)`;
+        ctx.fillStyle = label.isSelf ? "oklch(0.35 0.15 300)" : "oklch(0.25 0 0)";
+        ctx.fillText(label.name, cx, y);
+        y += lineHeight;
+
+        // Words
+        if (label.words.length > 0) {
+          ctx.font = `${fontSize * 0.75}px var(--font-mono, monospace)`;
+          ctx.fillStyle = "oklch(0.4 0 0 / 0.8)";
+          ctx.fillText(label.words.join(", "), cx, y);
+          y += lineHeight;
+        }
+      }
+      ctx.restore();
+    }
   }
 }
 

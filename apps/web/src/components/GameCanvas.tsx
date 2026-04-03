@@ -8,7 +8,7 @@ import {
   hitTestTile,
   defaultCloudParams,
 } from "@/lib/renderer.ts";
-import type { RenderState, TileRenderInfo, CloudParams, CloudStrategy } from "@/lib/renderer.ts";
+import type { RenderState, TileRenderInfo, TileLabel, CloudParams, CloudStrategy } from "@/lib/renderer.ts";
 
 function parseRgb(cssColor: string): [number, number, number] {
   const el = document.createElement("div");
@@ -107,6 +107,23 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
       }
     }
 
+    // Build tile labels for reveal phase
+    const tileLabels = new Map<string, TileLabel[]>();
+    if (isReveal) {
+      if (gameView.self.selectedTile) {
+        const arr = tileLabels.get(gameView.self.selectedTile) ?? [];
+        arr.push({ name: gameView.self.name, words: gameView.self.selectedWords, isSelf: true });
+        tileLabels.set(gameView.self.selectedTile, arr);
+      }
+      for (const other of gameView.others) {
+        if (other.selectedTile) {
+          const arr = tileLabels.get(other.selectedTile) ?? [];
+          arr.push({ name: other.name, words: other.selectedWords, isSelf: false });
+          tileLabels.set(other.selectedTile, arr);
+        }
+      }
+    }
+
     const tiles: TileRenderInfo[] = gameView.tileIds.map((tileId) => ({
       tileId,
       selected: gameView.self.selectedTile === tileId,
@@ -114,6 +131,7 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
       pressing: pressedTile === tileId && interactive,
       collision: collisionTiles.has(tileId),
       otherSelected: isReveal && otherSelectedTiles.has(tileId) && !collisionTiles.has(tileId),
+      labels: tileLabels.get(tileId) ?? [],
     }));
 
     // Check if we need to animate (hovering over selected tile)

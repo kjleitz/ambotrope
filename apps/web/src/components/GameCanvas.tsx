@@ -43,6 +43,7 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const renderStateRef = useRef<RenderState | null>(null);
   const [hoveredTile, setHoveredTile] = useState<TileId | null>(null);
+  const [pressedTile, setPressedTile] = useState<TileId | null>(null);
   const [renderVersion, setRenderVersion] = useState(0);
   const [cloudParams, setCloudParams] = useState<CloudParams>(() => {
     const themeColors = getThemeColors();
@@ -110,12 +111,28 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
       tileId,
       selected: gameView.self.selectedTile === tileId,
       hovering: hoveredTile === tileId && interactive,
+      pressing: pressedTile === tileId && interactive,
       collision: collisionTiles.has(tileId),
       otherSelected: isReveal && otherSelectedTiles.has(tileId) && !collisionTiles.has(tileId),
     }));
 
-    renderFrame(ctx, state, tiles, cloudParams);
-  }, [gameView, hoveredTile, interactive, renderVersion, cloudParams]);
+    // Check if we need to animate (hovering over selected tile)
+    const needsPulse = tiles.some((t) => t.selected && t.hovering && !t.pressing);
+
+    if (!needsPulse) {
+      renderFrame(ctx, state, tiles, cloudParams, 0);
+      return;
+    }
+
+    let animId: number;
+    const animate = (time: number) => {
+      const pulseTime = time / 1000;
+      renderFrame(ctx, state, tiles, cloudParams, pulseTime);
+      animId = requestAnimationFrame(animate);
+    };
+    animId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animId);
+  }, [gameView, hoveredTile, pressedTile, interactive, renderVersion, cloudParams]);
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -153,7 +170,27 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
     [interactive, onTileClick],
   );
 
-  const handleMouseLeave = useCallback(() => setHoveredTile(null), []);
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent<HTMLCanvasElement>) => {
+      if (!interactive) return;
+      const state = renderStateRef.current;
+      if (!state) return;
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+      const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+      setPressedTile(hitTestTile(state, x, y));
+    },
+    [interactive],
+  );
+
+  const handleMouseUp = useCallback(() => setPressedTile(null), []);
+
+  const handleMouseLeave = useCallback(() => {
+    setHoveredTile(null);
+    setPressedTile(null);
+  }, []);
 
   const levelsLabel = cloudParams.levels < 2 ? "Continuous" : `${cloudParams.levels}`;
 
@@ -163,6 +200,8 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
         ref={canvasRef}
         className={`w-full h-full ${interactive ? "cursor-pointer" : ""}`}
         onMouseMove={handleMouseMove}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
         onClick={handleClick}
         onMouseLeave={handleMouseLeave}
       />

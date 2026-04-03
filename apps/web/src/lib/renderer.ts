@@ -199,6 +199,7 @@ export interface TileRenderInfo {
   tileId: TileId;
   selected: boolean;
   hovering: boolean;
+  pressing: boolean;
   collision: boolean;
   otherSelected: boolean;
 }
@@ -208,6 +209,7 @@ export function renderFrame(
   state: RenderState,
   tiles: TileRenderInfo[],
   params: CloudParams = defaultCloudParams,
+  pulseTime: number = 0,
 ): void {
   const { canvasWidth, canvasHeight, gameGrid, cloudCanvas } = state;
 
@@ -227,13 +229,15 @@ export function renderFrame(
   });
 
   const hoveredIndex = tiles.findIndex((t) => t.hovering);
+  const excludeFromGroup = (t: number) =>
+    t === hoveredIndex || tiles[t].selected || tiles[t].pressing;
 
-  // --- Group shadow (excludes hovered tile so it visually separates) ---
+  // --- Group shadow (excludes hovered/selected/pressed tiles) ---
   const groupShadow = new OffscreenCanvas(canvasWidth, canvasHeight);
   const gsctx = groupShadow.getContext("2d");
   if (gsctx) {
     for (let t = 0; t < allScreenVerts.length; t++) {
-      if (t === hoveredIndex) continue;
+      if (excludeFromGroup(t)) continue;
       const screenVerts = allScreenVerts[t];
       gsctx.beginPath();
       gsctx.moveTo(screenVerts[0].x, screenVerts[0].y);
@@ -256,7 +260,7 @@ export function renderFrame(
     ctx.save();
     ctx.beginPath();
     for (let t = 0; t < allScreenVerts.length; t++) {
-      if (t === hoveredIndex) continue;
+      if (excludeFromGroup(t)) continue;
       const screenVerts = allScreenVerts[t];
       ctx.moveTo(screenVerts[0].x, screenVerts[0].y);
       for (let i = 1; i < screenVerts.length; i++) {
@@ -274,7 +278,8 @@ export function renderFrame(
   }
 
   // --- Hovered tile shadow (drawn on top, stronger shadow for "raised" effect) ---
-  if (hoveredIndex >= 0) {
+  // Skip the raise effect if hovering over the selected tile (it uses inset shadow instead)
+  if (hoveredIndex >= 0 && !tiles[hoveredIndex].selected) {
     const hoverVerts = allScreenVerts[hoveredIndex];
     const hoverShadow = new OffscreenCanvas(canvasWidth, canvasHeight);
     const hsctx = hoverShadow.getContext("2d");
@@ -329,15 +334,55 @@ export function renderFrame(
     if (tile.collision) {
       ctx.fillStyle = "oklch(0.65 0.2 25 / 0.45)";
       ctx.fill();
-    } else if (tile.selected) {
-      ctx.fillStyle = "oklch(0.75 0.15 300 / 0.4)";
-      ctx.fill();
     } else if (tile.otherSelected) {
       ctx.fillStyle = "oklch(0.7 0.1 140 / 0.35)";
       ctx.fill();
     }
 
+    // Inset shadow for selected or pressed tile
+    if (tile.selected || tile.pressing) {
+      // deep: pressing always deep; hovering selected tile pulses
+      let depth: number; // 0 = normal, 1 = fully deep
+      if (tile.pressing) {
+        depth = 1;
+      } else if (tile.selected && tile.hovering) {
+        // Pulse between normal and deep using a sine wave
+        depth = 0.5 + 0.5 * Math.sin(pulseTime * 3.5);
+      } else {
+        depth = 0;
+      }
+
+      const opacity = 0.6 + 0.2 * depth;
+      const blur = 15 + 10 * depth;
+      const offsetY = 3 + 3 * depth;
+      
+      ctx.save();
+      // Clip to the hex shape
+      ctx.clip();
+      // Draw a large rect with the hex cut out — shadow bleeds inward
+      ctx.beginPath();
+      ctx.rect(-canvasWidth, -canvasHeight, canvasWidth * 3, canvasHeight * 3);
+      ctx.moveTo(screenVerts[0].x, screenVerts[0].y);
+      // Wind the hex path in reverse so it cuts a hole
+      for (let i = screenVerts.length - 1; i >= 0; i--) {
+        ctx.lineTo(screenVerts[i].x, screenVerts[i].y);
+      }
+      ctx.closePath();
+      ctx.shadowColor = `rgba(0, 0, 0, ${opacity})`;
+      ctx.shadowBlur = blur;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = offsetY;
+      ctx.fill();
+      ctx.restore();
+    }
+
     // Hex border
+    ctx.beginPath();
+    ctx.moveTo(screenVerts[0].x, screenVerts[0].y);
+    for (let i = 1; i < screenVerts.length; i++) {
+      ctx.lineTo(screenVerts[i].x, screenVerts[i].y);
+    }
+    ctx.closePath();
     ctx.strokeStyle = "oklch(0.6 0.05 230 / 0.5)";
     ctx.lineWidth = 1.5;
     ctx.stroke();

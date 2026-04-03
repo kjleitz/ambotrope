@@ -55,6 +55,13 @@ async function bothLockIn(alice: Page, bob: Page) {
   await expect(alice.getByText("Results!")).toBeVisible({ timeout: 5000 });
 }
 
+test.describe("UI chrome", () => {
+  test("theme button is not shown", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("button", { name: "Theme" })).not.toBeVisible();
+  });
+});
+
 test.describe("single player start", () => {
   test("shows share link when alone", async ({ page }) => {
     await page.goto("/");

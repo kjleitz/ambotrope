@@ -405,8 +405,8 @@ export function renderFrame(
       ctx.lineTo(screenVerts[i].x, screenVerts[i].y);
     }
     ctx.closePath();
-    ctx.strokeStyle = "oklch(0.6 0.05 230 / 0.5)";
-    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = "oklch(0.2 0 0 / 0.18)";
+    ctx.lineWidth = 1;
     ctx.stroke();
 
     // Draw player labels inside hex during reveal

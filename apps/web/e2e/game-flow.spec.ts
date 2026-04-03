@@ -60,6 +60,20 @@ test.describe("UI chrome", () => {
     await page.goto("/");
     await expect(page.getByRole("button", { name: "Theme" })).not.toBeVisible();
   });
+
+  test("hex grid renders without console errors", async ({ page }) => {
+    const errors: string[] = [];
+    page.on("pageerror", (err) => errors.push(err.message));
+
+    await page.goto("/");
+    await page.getByPlaceholder("Enter your name").fill("Alice");
+    await page.getByRole("button", { name: "Create New Game" }).click();
+    await expect(page.locator("canvas")).toBeVisible({ timeout: 5000 });
+
+    // Trigger a render by hovering over the canvas
+    await page.locator("canvas").hover();
+    expect(errors).toHaveLength(0);
+  });
 });
 
 test.describe("single player start", () => {

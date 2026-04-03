@@ -150,6 +150,7 @@ export function GamePage() {
           round={gameView.round}
           onReady={phase === "reveal" ? ready : undefined}
           onLockIn={showLockIn ? lockIn : undefined}
+          canLockIn={!!gameView.self.selectedTile}
         >
           {phase === "selecting" && (
             <WordSelector

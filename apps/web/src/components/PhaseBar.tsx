@@ -15,10 +15,11 @@ interface PhaseBarProps {
   round: number;
   onReady?: () => void;
   onLockIn?: () => void;
+  canLockIn?: boolean;
   children?: React.ReactNode;
 }
 
-export function PhaseBar({ phase, round, onReady, onLockIn, children }: PhaseBarProps) {
+export function PhaseBar({ phase, round, onReady, onLockIn, canLockIn = true, children }: PhaseBarProps) {
   return (
     <div
       className="flex flex-col gap-3 px-4 py-3 rounded-xl bg-surface border border-border"
@@ -39,7 +40,9 @@ export function PhaseBar({ phase, round, onReady, onLockIn, children }: PhaseBar
           {onLockIn && (
             <button
               onClick={onLockIn}
-              className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors bg-success cursor-pointer"
+              disabled={!canLockIn}
+              className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors bg-success"
+              style={{ opacity: canLockIn ? 1 : 0.5, cursor: canLockIn ? "pointer" : "default" }}
             >
               Lock&nbsp;in
             </button>

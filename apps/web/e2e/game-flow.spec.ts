@@ -248,6 +248,19 @@ test.describe("refresh persistence", () => {
 });
 
 test.describe("lock in and reveal", () => {
+  test("lock in button is disabled without a tile selected", async ({ page, context }) => {
+    const { alice } = await setupTwoPlayerGame(page, context);
+
+    const lockInBtn = alice.getByRole("button", { name: "Lock in" });
+    await expect(lockInBtn).toBeVisible();
+    await expect(lockInBtn).toBeDisabled();
+
+    // Select a tile — button should become enabled
+    await clickTile(alice, 0, 0);
+    await expect(alice.getByText("Tile selected")).toBeVisible({ timeout: 3000 });
+    await expect(lockInBtn).toBeEnabled();
+  });
+
   test("auto-reveals when all players lock in", async ({ page, context }) => {
     const { alice, bob } = await setupTwoPlayerGame(page, context);
     await bothSelectTilesAndWords(alice, bob);

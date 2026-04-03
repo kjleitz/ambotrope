@@ -93,14 +93,15 @@ describe("rooms", () => {
       expect(getRoomCount()).toBe(2);
     });
 
-    it("removes player on disconnect during selecting", () => {
+    it("keeps player in game on disconnect for reconnect", () => {
       const { ws } = createMockWs();
       const handler = handleConnection("room-1", ws);
       send(handler, { type: "join", payload: { gameId: "room-1", playerName: "Alice" } });
 
       handler.onClose();
 
-      expect(getRoomInfo("room-1")?.playerCount).toBe(0);
+      // Player stays in game state so they can reconnect
+      expect(getRoomInfo("room-1")?.playerCount).toBe(1);
     });
   });
 

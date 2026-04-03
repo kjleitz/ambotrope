@@ -162,11 +162,6 @@ export function handleConnection(gameId: string, ws: WSContext): {
     if (playerId) {
       room.connections.delete(playerId);
 
-      // Remove player from game if still in selecting
-      if (room.gameState.phase === "selecting" && room.gameState.players[playerId]) {
-        room.gameState = removePlayer(room.gameState, playerId);
-      }
-
       broadcastToRoom(room, {
         type: "player_left",
         payload: { playerId },

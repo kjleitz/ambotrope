@@ -216,6 +216,30 @@ test.describe("optimistic updates and clear", () => {
   });
 });
 
+test.describe("refresh persistence", () => {
+  test("refreshing preserves selected tile and words", async ({ page }) => {
+    await page.goto("/");
+    await page.getByPlaceholder("Enter your name").fill("Alice");
+    await page.getByRole("button", { name: "Create New Game" }).click();
+    await expect(page.getByText("Choose your tile")).toBeVisible({ timeout: 5000 });
+
+    await clickTile(page, 0, 0);
+    await expect(page.getByText("Tile selected")).toBeVisible({ timeout: 3000 });
+
+    await page.getByRole("button", { name: "batman" }).click();
+    const selfCard = page.locator(".rounded-lg").filter({ hasText: "You" });
+    await expect(selfCard.locator("span.rounded-full", { hasText: "batman" })).toBeVisible();
+
+    // Refresh the page (URL contains ?name=Alice)
+    await page.reload();
+    await expect(page.getByText("Choose your tile")).toBeVisible({ timeout: 5000 });
+
+    // Tile and word selections should be restored from server
+    await expect(page.getByText("Tile selected")).toBeVisible({ timeout: 3000 });
+    await expect(selfCard.locator("span.rounded-full", { hasText: "batman" })).toBeVisible();
+  });
+});
+
 test.describe("lock in and reveal", () => {
   test("auto-reveals when all players lock in", async ({ page, context }) => {
     const { alice, bob } = await setupTwoPlayerGame(page, context);

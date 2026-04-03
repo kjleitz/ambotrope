@@ -134,11 +134,17 @@
     border-radius: 3px;
   }
 
+  .word-btn-outer {
+    border: none;
+    background: transparent;
+    padding: 4px;
+  }
   .word-btn {
-    border-color: oklch(0.05 0 0 / 0.2);
+    border: var(--border-width-control) solid oklch(0.05 0 0 / 0.2);
+    border-radius: 3px;
     transition: border-color 0.15s;
   }
-  .word-btn:hover:not(:disabled) {
+  .word-btn-outer:hover:not(:disabled) .word-btn {
     border-color: var(--color-border);
   }
   .word-btn-selected {

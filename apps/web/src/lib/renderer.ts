@@ -278,8 +278,8 @@ export function renderFrame(
   }
 
   // --- Hovered tile shadow (drawn on top, stronger shadow for "raised" effect) ---
-  // Skip the raise effect if hovering over the selected tile (it uses inset shadow instead)
-  if (hoveredIndex >= 0 && !tiles[hoveredIndex].selected) {
+  // Skip the raise effect if hovering over a selected or pressed tile (they use inset shadow instead)
+  if (hoveredIndex >= 0 && !tiles[hoveredIndex].selected && !tiles[hoveredIndex].pressing) {
     const hoverVerts = allScreenVerts[hoveredIndex];
     const hoverShadow = new OffscreenCanvas(canvasWidth, canvasHeight);
     const hsctx = hoverShadow.getContext("2d");
@@ -347,7 +347,7 @@ export function renderFrame(
         depth = 1;
       } else if (tile.selected && tile.hovering) {
         // Pulse between normal and deep using a sine wave
-        depth = 0.5 + 0.5 * Math.sin(pulseTime * 3.5);
+        depth = 0.5 + 0.5 * Math.sin(pulseTime * 3.5 - Math.PI / 2);
       } else {
         depth = 0;
       }
@@ -374,6 +374,21 @@ export function renderFrame(
       ctx.shadowOffsetY = offsetY;
       ctx.fill();
       ctx.restore();
+
+      // Darken tile background proportional to depth (separate pass so it doesn't obscure the shadow)
+      if (depth > 0) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(screenVerts[0].x, screenVerts[0].y);
+        for (let i = 1; i < screenVerts.length; i++) {
+          ctx.lineTo(screenVerts[i].x, screenVerts[i].y);
+        }
+        ctx.closePath();
+        ctx.clip();
+        ctx.fillStyle = `rgba(0, 0, 0, ${0.08 * depth})`;
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+        ctx.restore();
+      }
     }
 
     // Hex border

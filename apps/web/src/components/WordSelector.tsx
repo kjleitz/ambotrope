@@ -24,35 +24,41 @@ export function WordSelector({ wordList, maxWords, selectedWords, onToggle, disa
       <span className="text-sm font-medium text-text-muted whitespace-nowrap">
         Select up to {maxWords} words ({selected.size}/{maxWords})
       </span>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap">
         {wordList.map((word) => (
           <button
             key={word}
             onClick={() => toggle(word)}
             disabled={disabled || (!selected.has(word) && selected.size >= maxWords)}
-            className={`word-btn px-3 py-1.5 rounded-full text-sm transition-all ${selected.has(word) ? "word-btn-selected" : ""}`}
-            style={{
-              background: selected.has(word) ? "var(--color-primary)" : "var(--color-surface)",
-              color: selected.has(word) ? "white" : "var(--color-text)",
-              opacity: disabled || (!selected.has(word) && selected.size >= maxWords) ? 0.5 : 1,
-              cursor: disabled ? "not-allowed" : "pointer",
-            }}
+            className={`word-btn-outer p-1 ${disabled || (!selected.has(word) && selected.size >= maxWords) ? "cursor-default" : "cursor-pointer"}`}
           >
-            {word}
+            <span
+              className={`word-btn inline-block px-3 py-1.5 text-sm transition-all ${selected.has(word) ? "word-btn-selected" : ""}`}
+              style={{
+                background: selected.has(word) ? "var(--color-primary)" : "var(--color-surface)",
+                color: selected.has(word) ? "white" : "var(--color-text)",
+                opacity: disabled || (!selected.has(word) && selected.size >= maxWords) ? 0.5 : 1,
+              }}
+            >
+              {word}
+            </span>
           </button>
         ))}
         <button
           onClick={() => onToggle([])}
           disabled={disabled || selected.size === 0}
-          className="word-btn px-3 py-1.5 rounded-full text-sm transition-all"
-          style={{
-            background: "var(--color-danger)",
-            color: "white",
-            opacity: disabled || selected.size === 0 ? 0.5 : 1,
-            cursor: disabled || selected.size === 0 ? "not-allowed" : "pointer",
-          }}
+          className={`word-btn-outer p-1 ${disabled || selected.size === 0 ? "cursor-default" : "cursor-pointer"}`}
         >
-          Clear
+          <span
+            className="word-btn inline-block px-3 py-1.5 text-sm transition-all"
+            style={{
+              background: "var(--color-danger)",
+              color: "white",
+              opacity: disabled || selected.size === 0 ? 0.5 : 1,
+            }}
+          >
+            Clear
+          </span>
         </button>
       </div>
     </div>

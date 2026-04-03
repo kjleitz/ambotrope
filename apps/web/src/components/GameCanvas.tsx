@@ -125,8 +125,10 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
     }
 
     let animId: number;
+    let startTime: number | null = null;
     const animate = (time: number) => {
-      const pulseTime = time / 1000;
+      if (startTime === null) startTime = time;
+      const pulseTime = (time - startTime) / 1000;
       renderFrame(ctx, state, tiles, cloudParams, pulseTime);
       animId = requestAnimationFrame(animate);
     };

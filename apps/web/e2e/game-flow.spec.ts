@@ -142,6 +142,16 @@ test.describe("selecting phase", () => {
     await expect(selfCard.locator("span.rounded-full", { hasText: "batman" })).toBeVisible();
   });
 
+  test("shows suggest words link pointing to GitHub issues", async ({ page, context }) => {
+    const { alice } = await setupTwoPlayerGame(page, context);
+
+    const link = alice.getByRole("link", { name: "Suggest words" });
+    await expect(link).toBeVisible();
+    const href = await link.getAttribute("href");
+    expect(href).toContain("github.com/kjleitz/ambotrope/issues/new");
+    expect(href).toContain("labels=word+suggestion");
+  });
+
   test("can select words and they appear on player card", async ({ page, context }) => {
     const { alice } = await setupTwoPlayerGame(page, context);
 

@@ -23,6 +23,15 @@ export function WordSelector({ wordList, maxWords, selectedWords, onToggle, disa
     <div className="flex items-center gap-3 flex-wrap">
       <span className="text-sm font-medium text-text-muted whitespace-nowrap">
         Select up to {maxWords} words ({selected.size}/{maxWords})
+        {" · "}
+        <a
+          href="https://github.com/kjleitz/ambotrope/issues/new?labels=word+suggestion&title=Word+suggestion:+&body=I%27d+like+to+suggest+adding+these+words:"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline"
+        >
+          Suggest words
+        </a>
       </span>
       <div className="flex flex-wrap">
         {wordList.map((word) => (

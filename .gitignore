@@ -45,3 +45,6 @@ infra/.terraform.lock.hcl
 
 # pnpm
 .pnpm-store
+
+# OS
+.DS_Store

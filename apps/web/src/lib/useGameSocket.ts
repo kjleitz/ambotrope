@@ -27,8 +27,9 @@ export function useGameSocket(gameId: string, playerName: string | null) {
   useEffect(() => {
     if (!playerName) return;
 
+    const wsHost = import.meta.env.VITE_WS_HOST || window.location.host;
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/ws/${gameId}`;
+    const wsUrl = `${protocol}//${wsHost}/ws/${gameId}`;
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
@@ -139,11 +140,19 @@ export function useGameSocket(gameId: string, playerName: string | null) {
 
   const ready = useCallback(() => send({ type: "ready" }), [send]);
 
+  const changeSeed = useCallback(
+    (direction: "next" | "prev") => {
+      send({ type: "change_seed", payload: { direction } });
+    },
+    [send],
+  );
+
   return {
     ...state,
     selectTile,
     selectWords,
     lockIn,
     ready,
+    changeSeed,
   };
 }

@@ -32,12 +32,20 @@ const readySchema = z.object({
   type: z.literal("ready"),
 });
 
+const changeSeedSchema = z.object({
+  type: z.literal("change_seed"),
+  payload: z.object({
+    direction: z.enum(["next", "prev"]),
+  }),
+});
+
 export const clientMessageSchema = z.discriminatedUnion("type", [
   joinSchema,
   selectTileSchema,
   selectWordsSchema,
   lockInSchema,
   readySchema,
+  changeSeedSchema,
 ]);
 
 export type ClientMessage = z.infer<typeof clientMessageSchema>;
@@ -55,6 +63,7 @@ const playerViewSelfSchema = z.object({
   selectedTile: z.string().nullable(),
   selectedWords: z.array(z.string()),
   lockedIn: z.boolean(),
+  readyForNext: z.boolean(),
 });
 
 const playerViewOtherSchema = z.object({
@@ -62,6 +71,7 @@ const playerViewOtherSchema = z.object({
   name: z.string(),
   selectedWords: z.array(z.string()),
   lockedIn: z.boolean(),
+  readyForNext: z.boolean(),
   hasSelectedTile: z.boolean(),
   selectedTile: z.string().nullable(),
 });
@@ -80,6 +90,7 @@ const playerViewSchema = z.object({
   tileIds: z.array(z.string()),
   round: z.number(),
   config: gameConfigSchema,
+  seedAdvances: z.number(),
   self: playerViewSelfSchema,
   others: z.array(playerViewOtherSchema),
 });

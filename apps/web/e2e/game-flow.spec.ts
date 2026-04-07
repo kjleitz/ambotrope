@@ -344,6 +344,36 @@ test.describe("lock in and reveal", () => {
     await expect(alice.getByText("Round 2")).toBeVisible();
   });
 
+  test("new blots button changes seed for all players, undo reverts", async ({ page, context }) => {
+    const { alice, bob } = await setupTwoPlayerGame(page, context);
+
+    // New blots button should be visible during selecting
+    const newBlotsAlice = alice.getByRole("button", { name: "New blots" });
+    await expect(newBlotsAlice).toBeVisible({ timeout: 3000 });
+
+    // Undo button should NOT be visible initially (no advances yet)
+    await expect(alice.getByRole("button", { name: "Undo blots" })).not.toBeVisible();
+
+    // Click new blots — undo should appear for both players
+    await newBlotsAlice.click();
+    await expect(alice.getByRole("button", { name: "Undo blots" })).toBeVisible({ timeout: 3000 });
+    await expect(bob.getByRole("button", { name: "Undo blots" })).toBeVisible({ timeout: 3000 });
+
+    // Undo — undo button should disappear again
+    await alice.getByRole("button", { name: "Undo blots" }).click();
+    await expect(alice.getByRole("button", { name: "Undo blots" })).not.toBeVisible({ timeout: 3000 });
+    await expect(bob.getByRole("button", { name: "Undo blots" })).not.toBeVisible({ timeout: 3000 });
+  });
+
+  test("new blots and undo buttons hidden during reveal phase", async ({ page, context }) => {
+    const { alice, bob } = await setupTwoPlayerGame(page, context);
+    await bothSelectTilesAndWords(alice, bob);
+    await bothLockIn(alice, bob);
+
+    // In reveal phase, new blots should not be visible
+    await expect(alice.getByRole("button", { name: "New blots" })).not.toBeVisible();
+  });
+
   test("share link is visible during reveal and new rounds", async ({ page, context }) => {
     const { alice, bob } = await setupTwoPlayerGame(page, context);
     await bothSelectTilesAndWords(alice, bob);

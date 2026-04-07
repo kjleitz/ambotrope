@@ -25,6 +25,8 @@ export function createGame(
     tileIds,
     players: {},
     round: 1,
+    baseSeed: config.seed,
+    seedAdvances: 0,
   };
 }
 
@@ -65,6 +67,26 @@ export function removePlayer(
 
   const { [playerId]: _, ...remaining } = state.players;
   return { ...state, players: remaining };
+}
+
+export function changeSeed(
+  state: GameState,
+  direction: "next" | "prev",
+): GameState {
+  if (state.phase !== "selecting") {
+    throw new Error("Can only change seed during selecting phase");
+  }
+  const newAdvances = direction === "next"
+    ? state.seedAdvances + 1
+    : state.seedAdvances - 1;
+  if (newAdvances < 0) {
+    throw new Error("Cannot undo past the original seed");
+  }
+  return {
+    ...state,
+    seedAdvances: newAdvances,
+    config: { ...state.config, seed: state.baseSeed + newAdvances },
+  };
 }
 
 export function selectTile(
@@ -233,6 +255,7 @@ export function getPlayerView(
     tileIds: state.tileIds,
     round: state.round,
     config: state.config,
+    seedAdvances: state.seedAdvances,
     self,
     others,
   };

@@ -1,8 +1,10 @@
+import type { WebSocket as NodeWebSocket } from "ws";
 import type { WSContext } from "hono/ws";
 import {
   createGame,
   addPlayer,
   removePlayer,
+  changeSeed,
   selectTile,
   selectWords,
   lockIn,
@@ -34,6 +36,7 @@ interface Room {
 const rooms = new Map<string, Room>();
 
 const ROOM_CLEANUP_DELAY_MS = 5 * 60 * 1000; // 5 minutes
+const PING_INTERVAL_MS = 30_000; // 30 seconds
 
 function generatePlayerId(): string {
   return `p_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -138,6 +141,13 @@ export function handleConnection(gameId: string, ws: WSContext): {
   const room = getOrCreateRoom(gameId);
   let playerId: string | null = null;
 
+  const pingInterval = setInterval(() => {
+    const raw = ws.raw as NodeWebSocket | undefined;
+    if (raw && raw.readyState === 1) {
+      raw.ping();
+    }
+  }, PING_INTERVAL_MS);
+
   function onMessage(data: string): void {
     let message: ClientMessage;
     try {
@@ -161,6 +171,8 @@ export function handleConnection(gameId: string, ws: WSContext): {
   }
 
   function onClose(): void {
+    clearInterval(pingInterval);
+
     if (playerId) {
       room.connections.delete(playerId);
 
@@ -255,6 +267,14 @@ function handleClientMessage(
         broadcastToRoom(room, { type: "round_result", payload: result });
       }
 
+      sendGameStateToAll(room);
+      break;
+    }
+
+    case "change_seed": {
+      const pid = getPlayerId();
+      if (!pid) throw new Error("Not joined");
+      room.gameState = changeSeed(room.gameState, message.payload.direction);
       sendGameStateToAll(room);
       break;
     }

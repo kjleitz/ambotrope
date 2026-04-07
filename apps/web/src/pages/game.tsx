@@ -46,6 +46,7 @@ export function GamePage() {
     selectWords,
     lockIn,
     ready,
+    changeSeed,
   } = useGameSocket(gameId!, playerName);
 
   if (!playerName) {
@@ -121,7 +122,7 @@ export function GamePage() {
   const showLockIn = phase === "selecting" && !gameView.self.lockedIn;
 
   function handleSelectTile(tileId: string) {
-    if (gameView.self.selectedTile && tileId !== gameView.self.selectedTile) {
+    if (gameView?.self.selectedTile && tileId !== gameView.self.selectedTile) {
       selectWords([]);
     }
     selectTile(tileId);
@@ -169,12 +170,34 @@ export function GamePage() {
       <div className="flex-1 flex min-h-0">
         {/* Canvas */}
         <div className="flex-1 p-3 pt-0">
-          <div className="w-full h-full rounded-xl overflow-hidden border border-border">
+          <div className="relative w-full h-full rounded-xl overflow-hidden border border-border">
             <GameCanvas
               gameView={gameView}
               onTileClick={handleSelectTile}
               interactive={canSelectTile}
             />
+            {phase === "selecting" && (
+              <div className="absolute bottom-3 right-3 flex gap-1.5">
+                {gameView.seedAdvances > 0 && (
+                  <button
+                    onClick={() => changeSeed("prev")}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg text-sm transition-colors cursor-pointer bg-surface/80 text-text-muted border border-border backdrop-blur-sm"
+                    title="Undo blots"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 7h7a3 3 0 0 1 0 6H8" />
+                      <path d="M6 4L3 7l3 3" />
+                    </svg>
+                  </button>
+                )}
+                <button
+                  onClick={() => changeSeed("next")}
+                  className="px-3 h-8 flex items-center gap-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer bg-surface/80 text-text border border-border backdrop-blur-sm"
+                >
+                  New blots
+                </button>
+              </div>
+            )}
           </div>
         </div>
 

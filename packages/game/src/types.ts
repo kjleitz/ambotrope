@@ -28,6 +28,8 @@ export interface GameState {
   tileIds: TileId[];
   players: Record<string, PlayerState>;
   round: number;
+  baseSeed: number;
+  seedAdvances: number;
 }
 
 export interface PlayerView {
@@ -36,6 +38,7 @@ export interface PlayerView {
   tileIds: TileId[];
   round: number;
   config: GameConfig;
+  seedAdvances: number;
   self: PlayerState;
   others: Array<{
     id: string;

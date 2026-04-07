@@ -3,6 +3,7 @@ import {
   createGame,
   addPlayer,
   removePlayer,
+  changeSeed,
   selectTile,
   selectWords,
   lockIn,
@@ -90,6 +91,53 @@ describe("removePlayer", () => {
   it("throws for unknown player", () => {
     const state = createGame("g1", TEST_CONFIG, TEST_TILES);
     expect(() => removePlayer(state, "p1")).toThrow("not found");
+  });
+});
+
+describe("changeSeed", () => {
+  it("advances the seed by 1", () => {
+    const state = setupSelecting();
+    const next = changeSeed(state, "next");
+    expect(next.seedAdvances).toBe(1);
+    expect(next.config.seed).toBe(state.baseSeed + 1);
+  });
+
+  it("can advance multiple times", () => {
+    let state = setupSelecting();
+    state = changeSeed(state, "next");
+    state = changeSeed(state, "next");
+    state = changeSeed(state, "next");
+    expect(state.seedAdvances).toBe(3);
+    expect(state.config.seed).toBe(state.baseSeed + 3);
+  });
+
+  it("can undo back to original", () => {
+    let state = setupSelecting();
+    state = changeSeed(state, "next");
+    state = changeSeed(state, "next");
+    state = changeSeed(state, "prev");
+    expect(state.seedAdvances).toBe(1);
+    state = changeSeed(state, "prev");
+    expect(state.seedAdvances).toBe(0);
+    expect(state.config.seed).toBe(state.baseSeed);
+  });
+
+  it("throws when undoing past original seed", () => {
+    const state = setupSelecting();
+    expect(() => changeSeed(state, "prev")).toThrow("original seed");
+  });
+
+  it("throws in reveal phase", () => {
+    const state = setupReveal();
+    expect(() => changeSeed(state, "next")).toThrow("selecting");
+  });
+
+  it("is reflected in player view", () => {
+    let state = setupSelecting();
+    state = changeSeed(state, "next");
+    const view = getPlayerView(state, "p1");
+    expect(view.seedAdvances).toBe(1);
+    expect(view.config.seed).toBe(state.baseSeed + 1);
   });
 });
 

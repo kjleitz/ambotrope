@@ -11,6 +11,7 @@ export {
   createGame,
   addPlayer,
   removePlayer,
+  changeSeed,
   selectTile,
   selectWords,
   lockIn,

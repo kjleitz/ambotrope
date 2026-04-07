@@ -27,6 +27,16 @@ describe("clientMessageSchema", () => {
     expect(clientMessageSchema.parse(msg)).toEqual(msg);
   });
 
+  it("parses change_seed message", () => {
+    const msg = { type: "change_seed", payload: { direction: "next" } };
+    expect(clientMessageSchema.parse(msg)).toEqual(msg);
+  });
+
+  it("parses change_seed prev message", () => {
+    const msg = { type: "change_seed", payload: { direction: "prev" } };
+    expect(clientMessageSchema.parse(msg)).toEqual(msg);
+  });
+
   it("rejects empty player name", () => {
     const msg = { type: "join", payload: { gameId: "abc", playerName: "" } };
     expect(() => clientMessageSchema.parse(msg)).toThrow();
@@ -59,12 +69,14 @@ describe("serverMessageSchema", () => {
           seed: 42,
           maxWordsPerPlayer: 3,
         },
+        seedAdvances: 0,
         self: {
           id: "p1",
           name: "Alice",
           selectedTile: null,
           selectedWords: [],
           lockedIn: false,
+          readyForNext: false,
         },
         others: [],
       },

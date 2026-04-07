@@ -5,10 +5,31 @@ const PHASE_LABELS: Record<GamePhase, string> = {
   reveal: "Results!",
 };
 
-const PHASE_DESCRIPTIONS: Record<GamePhase, React.ReactNode> = {
-  selecting: <><strong>Objective:</strong> EVERY PLAYER SELECTS A DIFFERENT TILE. <strong>Rule:</strong> Don't talk about where your tile is. <strong>Step 1:</strong> Choose a tile. <strong>Step 2:</strong> Pick 3 words for blots around your tile. <strong>Step 3:</strong> Look at the words your teammates chose. <strong>Step 4:</strong> Switch your tile if someone has already chosen it. <strong>Done?</strong> Use the "Lock&nbsp;in" button.</>,
-  reveal: "See where everyone landed!",
-};
+type PlayerStep = "choose-tile" | "pick-words" | "review";
+
+function SelectingDescription({ step }: { step: PlayerStep }) {
+  const highlight = "bg-yellow-200/80 dark:bg-yellow-400/30 rounded px-0.5";
+  const muted = "opacity-40";
+
+  return (
+    <>
+      <strong>Objective:</strong> CHOOSE A TILE NO ONE ELSE HAS CHOSEN.{" "}
+      <span className={step === "choose-tile" ? highlight : undefined}>
+        <strong>Step 1:</strong> Choose a tile.
+      </span>{" "}
+      <span className={step === "pick-words" ? highlight : step === "choose-tile" ? muted : undefined}>
+        <strong>Step 2:</strong> Pick 3 words for blots around your tile.
+      </span>{" "}
+      <span className={step === "review" ? highlight : muted}>
+        <strong>Step 3:</strong> Look at the words your teammates chose.
+      </span>{" "}
+      <span className={step !== "review" ? muted : undefined}>
+        <strong>Step 4:</strong> Switch your tile if someone has already chosen it.{" "}
+        <strong>Done?</strong> Use the "Lock&nbsp;in" button.
+      </span>
+    </>
+  );
+}
 
 interface PhaseBarProps {
   phase: GamePhase;
@@ -17,10 +38,17 @@ interface PhaseBarProps {
   othersReady?: boolean;
   onLockIn?: () => void;
   canLockIn?: boolean;
+  selectedTile?: string | null;
+  selectedWordCount?: number;
+  maxWords?: number;
   children?: React.ReactNode;
 }
 
-export function PhaseBar({ phase, round, onReady, othersReady, onLockIn, canLockIn = true, children }: PhaseBarProps) {
+export function PhaseBar({ phase, round, onReady, othersReady, onLockIn, canLockIn = true, selectedTile, selectedWordCount = 0, maxWords = 3, children }: PhaseBarProps) {
+  const step: PlayerStep =
+    !selectedTile ? "choose-tile" :
+    selectedWordCount < maxWords ? "pick-words" :
+    "review";
   return (
     <div
       className="flex flex-col gap-3 px-4 py-3 rounded-xl bg-surface border border-border"
@@ -34,7 +62,11 @@ export function PhaseBar({ phase, round, onReady, othersReady, onLockIn, canLock
             </span>
           </div>
           <span className="text-sm text-text-muted">
-            {PHASE_DESCRIPTIONS[phase]}
+            {phase === "selecting" ? (
+              <SelectingDescription step={step} />
+            ) : (
+              "See where everyone landed!"
+            )}
           </span>
         </div>
         <div className="flex gap-2">

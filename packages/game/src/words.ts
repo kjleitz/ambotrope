@@ -27,7 +27,6 @@ export const DEFAULT_WORD_LIST: string[] = [
   "feet",
   "fish",
   "footprint",
-  "footprint",
   "gem",
   "goomba",
   "hat",

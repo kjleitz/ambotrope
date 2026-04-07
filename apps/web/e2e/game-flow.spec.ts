@@ -177,6 +177,51 @@ test.describe("selecting phase", () => {
     await expect(selfCard.locator("span.rounded-full", { hasText: "egg" })).toBeVisible();
   });
 
+  test("step 1 is highlighted before selecting a tile", async ({ page, context }) => {
+    const { alice } = await setupTwoPlayerGame(page, context);
+
+    const step1 = alice.locator("text=Step 1: Choose a tile.").locator("..");
+    await expect(step1).toHaveClass(/bg-yellow/, { timeout: 3000 });
+
+    const step2 = alice.locator("text=Step 2: Pick 3 words").locator("..");
+    await expect(step2).toHaveClass(/opacity-40/);
+  });
+
+  test("step 2 is highlighted after selecting a tile", async ({ page, context }) => {
+    const { alice } = await setupTwoPlayerGame(page, context);
+
+    await clickTile(alice, 0, 0);
+    await expect(alice.getByText("Tile selected")).toBeVisible({ timeout: 3000 });
+
+    const step2 = alice.locator("text=Step 2: Pick 3 words").locator("..");
+    await expect(step2).toHaveClass(/bg-yellow/, { timeout: 3000 });
+
+    const step1 = alice.locator("text=Step 1: Choose a tile.").locator("..");
+    await expect(step1).not.toHaveClass(/bg-yellow/);
+    await expect(step1).not.toHaveClass(/opacity-40/);
+  });
+
+  test("step 3 is highlighted after selecting 3 words", async ({ page, context }) => {
+    const { alice } = await setupTwoPlayerGame(page, context);
+
+    await clickTile(alice, 0, 0);
+    await expect(alice.getByText("Tile selected")).toBeVisible({ timeout: 3000 });
+
+    // Select 3 words by clicking word buttons
+    const wordButtons = alice.locator("[class*='flex flex-wrap'] button");
+    const count = await wordButtons.count();
+    for (let i = 0; i < Math.min(3, count); i++) {
+      await wordButtons.nth(i).click();
+    }
+
+    const step3 = alice.locator("text=Step 3: Look at the words").locator("..");
+    await expect(step3).toHaveClass(/bg-yellow/, { timeout: 3000 });
+
+    // Steps after step 3 should NOT be muted
+    const step4 = alice.locator("text=Step 4: Switch your tile").locator("..");
+    await expect(step4).not.toHaveClass(/opacity-40/);
+  });
+
   test("other player's words appear in real time", async ({ page, context }) => {
     const { alice, bob } = await setupTwoPlayerGame(page, context);
 

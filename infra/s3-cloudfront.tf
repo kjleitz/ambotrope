@@ -32,7 +32,6 @@ resource "aws_cloudfront_origin_access_control" "web" {
 }
 
 resource "aws_cloudfront_function" "redirect_apex_to_www" {
-  count   = var.domain_enabled ? 1 : 0
   name    = "${var.project_name}-redirect-apex-to-www"
   runtime = "cloudfront-js-1.0"
   publish = true
@@ -57,6 +56,10 @@ resource "aws_cloudfront_function" "redirect_apex_to_www" {
       return request;
     }
   EOT
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_cloudfront_distribution" "web" {
@@ -64,7 +67,7 @@ resource "aws_cloudfront_distribution" "web" {
   default_root_object = "index.html"
   price_class         = "PriceClass_100"
   comment             = "${var.project_name} frontend"
-  aliases             = var.domain_enabled ? [var.domain_name, "www.${var.domain_name}"] : []
+  aliases             = [var.domain_name, "www.${var.domain_name}"]
 
   depends_on = [aws_acm_certificate_validation.main]
 
@@ -82,12 +85,9 @@ resource "aws_cloudfront_distribution" "web" {
     compress               = true
     cache_policy_id        = "658327ea-f89d-4fab-a63d-7e88639e58f6"
 
-    dynamic "function_association" {
-      for_each = var.domain_enabled ? [1] : []
-      content {
-        event_type   = "viewer-request"
-        function_arn = aws_cloudfront_function.redirect_apex_to_www[0].arn
-      }
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.redirect_apex_to_www.arn
     }
   }
 
@@ -111,20 +111,10 @@ resource "aws_cloudfront_distribution" "web" {
     }
   }
 
-  dynamic "viewer_certificate" {
-    for_each = var.domain_enabled ? [1] : []
-    content {
-      acm_certificate_arn      = aws_acm_certificate.main[0].arn
-      ssl_support_method       = "sni-only"
-      minimum_protocol_version = "TLSv1.2_2021"
-    }
-  }
-
-  dynamic "viewer_certificate" {
-    for_each = var.domain_enabled ? [] : [1]
-    content {
-      cloudfront_default_certificate = true
-    }
+  viewer_certificate {
+    acm_certificate_arn      = aws_acm_certificate.main.arn
+    ssl_support_method       = "sni-only"
+    minimum_protocol_version = "TLSv1.2_2021"
   }
 
   tags = {

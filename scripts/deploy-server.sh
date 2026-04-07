@@ -4,18 +4,53 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 INFRA_DIR="${ROOT_DIR}/infra"
+SERVICE_NAME="${SERVICE_NAME:-$(terraform -chdir="${INFRA_DIR}" output -raw container_service_name)}"
 
-HOST="${LIGHTSAIL_HOST:-$(terraform -chdir="${INFRA_DIR}" output -raw lightsail_static_ip)}"
-IMAGE_URI="${IMAGE_URI:-$(terraform -chdir="${INFRA_DIR}" output -raw server_image)}"
-SSH_USER="${SSH_USER:-ubuntu}"
+echo "Building image..."
+docker build --platform linux/amd64 \
+  -f "${ROOT_DIR}/apps/server/Dockerfile" \
+  -t "${SERVICE_NAME}:latest" \
+  "${ROOT_DIR}"
 
-echo "Building Docker image: ${IMAGE_URI}"
-docker build -f "${ROOT_DIR}/apps/server/Dockerfile" -t "${IMAGE_URI}" "${ROOT_DIR}"
+echo "Pushing image to Lightsail..."
+# push-container-image prints the image reference (e.g. :ambotrope-server.server.3)
+# to stderr. Capture it.
+PUSH_OUTPUT=$(aws lightsail push-container-image \
+  --service-name "${SERVICE_NAME}" \
+  --label server \
+  --image "${SERVICE_NAME}:latest" 2>&1)
 
-echo "Pushing image..."
-docker push "${IMAGE_URI}"
+IMAGE_REF=$(echo "${PUSH_OUTPUT}" | grep -o ':[^ ]*\.server\.[0-9]*' | head -1)
 
-echo "Deploying to ${HOST}..."
-ssh "${SSH_USER}@${HOST}" "sudo docker pull ${IMAGE_URI} && sudo systemctl restart ambotrope && sudo systemctl status ambotrope --no-pager"
+if [[ -z "${IMAGE_REF}" ]]; then
+  echo "Failed to parse image reference from push output:" >&2
+  echo "${PUSH_OUTPUT}" >&2
+  exit 1
+fi
 
-echo "Done."
+echo "Creating deployment with image: ${IMAGE_REF}"
+aws lightsail create-container-service-deployment \
+  --service-name "${SERVICE_NAME}" \
+  --containers "{
+    \"server\": {
+      \"image\": \"${IMAGE_REF}\",
+      \"ports\": {\"3000\": \"HTTP\"},
+      \"environment\": {
+        \"NODE_ENV\": \"production\",
+        \"PORT\": \"3000\",
+        \"CORS_ORIGIN\": \"https://www.ambotrope.com\"
+      }
+    }
+  }" \
+  --public-endpoint "{
+    \"containerName\": \"server\",
+    \"containerPort\": 3000,
+    \"healthCheck\": {
+      \"path\": \"/health\",
+      \"intervalSeconds\": 10,
+      \"healthyThreshold\": 2,
+      \"unhealthyThreshold\": 3
+    }
+  }"
+
+echo "Deployment created. Lightsail is rolling out the new version."

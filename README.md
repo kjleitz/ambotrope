@@ -11,7 +11,7 @@ Multiplayer browser game where players see a shared hex grid with procedurally g
 - **Frontend**: React + Vite + Tailwind CSS
 - **Tests**: Vitest + Playwright
 - **TS Runtime**: tsx (no build step)
-- **Infrastructure**: Terraform (AWS — S3/CloudFront, Lightsail, Route 53)
+- **Infrastructure**: Terraform (AWS — S3/CloudFront, Lightsail Container Service, Route 53)
 
 ## Project Structure
 
@@ -47,11 +47,7 @@ pnpm test          # Run all tests
    # Region: us-east-1
    ```
 
-2. **Docker auth with GHCR**:
-   ```bash
-   gh auth refresh -h github.com -s write:packages
-   pnpm docker:login
-   ```
+2. **Docker** installed (for building server images).
 
 3. **Terraform setup**:
    ```bash
@@ -63,7 +59,7 @@ pnpm test          # Run all tests
 
 ### Infrastructure setup (one-time)
 
-1. **Stand up resources** (domain disabled first):
+1. **Stand up resources**:
    ```bash
    cd infra/
    terraform apply
@@ -75,25 +71,16 @@ pnpm test          # Run all tests
    ```
    Copy those nameservers to your domain registrar's DNS settings. Wait for propagation.
 
-3. **Enable domain**:
+3. **Push the initial server image**:
    ```bash
-   # Set domain_enabled = true in terraform.tfvars
-   terraform apply
+   pnpm deploy:server
    ```
-   This creates the ACM certificate, DNS records, and CloudFront aliases. ACM validation takes a few minutes; CloudFront distribution takes 5-15 minutes.
 
 ### Deploying
 
 ```bash
-pnpm deploy:server   # Build + push Docker image, restart server
+pnpm deploy:server   # Build, push to Lightsail, create deployment
 pnpm deploy:web      # Build frontend, sync to S3, invalidate CloudFront
-```
-
-### Server access
-
-```bash
-pnpm ssh                           # SSH into the Lightsail instance
-pnpm ssh -- "docker logs ambotrope"  # Run a command remotely
 ```
 
 ## All pnpm Scripts
@@ -104,6 +91,4 @@ pnpm ssh -- "docker logs ambotrope"  # Run a command remotely
 | `pnpm dev:web` | Start frontend dev server (Vite) |
 | `pnpm test` | Run all tests across all packages |
 | `pnpm deploy:web` | Build and deploy frontend to S3/CloudFront |
-| `pnpm deploy:server` | Build, push, and deploy server to Lightsail |
-| `pnpm ssh` | SSH into the Lightsail instance |
-| `pnpm docker:login` | Auth Docker with GHCR via gh CLI |
+| `pnpm deploy:server` | Build, push image to Lightsail, create deployment |

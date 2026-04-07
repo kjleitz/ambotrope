@@ -7,9 +7,7 @@
     "dev:server": "pnpm --filter @ambotrope/server dev",
     "dev:web": "pnpm --filter @ambotrope/web dev",
     "deploy:web": "./scripts/deploy-web.sh",
-    "deploy:server": "./scripts/deploy-server.sh",
-    "ssh": "./scripts/ssh.sh",
-    "docker:login": "gh auth token | docker login ghcr.io -u kjleitz --password-stdin"
+    "deploy:server": "./scripts/deploy-server.sh"
   },
   "devDependencies": {
     "typescript": "^5.7.0",

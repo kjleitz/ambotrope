@@ -1,11 +1,11 @@
 output "web_url" {
   description = "Frontend URL"
-  value       = var.domain_enabled ? "https://www.${var.domain_name}" : "https://${aws_cloudfront_distribution.web.domain_name}"
+  value       = "https://www.${var.domain_name}"
 }
 
 output "api_url" {
   description = "API URL"
-  value       = var.domain_enabled ? "https://api.${var.domain_name}" : "http://${aws_lightsail_static_ip.server.ip_address}"
+  value       = "https://api.${var.domain_name}"
 }
 
 output "web_bucket_name" {
@@ -18,22 +18,27 @@ output "cloudfront_distribution_id" {
   value       = aws_cloudfront_distribution.web.id
 }
 
-output "lightsail_instance_name" {
-  description = "Lightsail instance name"
-  value       = aws_lightsail_instance.server.name
+output "container_service_url" {
+  description = "Lightsail container service default URL"
+  value       = replace(replace(aws_lightsail_container_service.server.url, "https://", ""), "/", "")
 }
 
-output "lightsail_static_ip" {
-  description = "Public static IPv4 address for the server"
-  value       = aws_lightsail_static_ip.server.ip_address
+output "container_service_name" {
+  description = "Lightsail container service name (for deploy script)"
+  value       = aws_lightsail_container_service.server.name
 }
 
-output "server_image" {
-  description = "Container image URI configured for the server"
-  value       = var.server_image
+output "aws_region" {
+  description = "AWS region"
+  value       = var.aws_region
+}
+
+output "lightsail_cert_validation_records" {
+  description = "DNS validation records for the Lightsail certificate (one-time)"
+  value       = aws_lightsail_certificate.api.domain_validation_options
 }
 
 output "nameservers" {
   description = "Route 53 nameservers to set at the registrar"
-  value       = var.domain_enabled ? aws_route53_zone.main[0].name_servers : []
+  value       = aws_route53_zone.main.name_servers
 }

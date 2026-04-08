@@ -44,7 +44,7 @@ export function WordSelector({ wordList, maxWords, selectedWords, onToggle, disa
     <div className="flex flex-col gap-2">
       {/* Header */}
       <span className="text-sm font-medium text-text-muted whitespace-nowrap">
-        Select up to {maxWords} words ({selected.size}/{maxWords})
+        Choose up to {maxWords} words ({selected.size}/{maxWords})
       </span>
 
       {/* Input row */}

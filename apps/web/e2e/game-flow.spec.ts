@@ -151,7 +151,7 @@ test.describe("selecting phase", () => {
   test("word selector is visible during selecting phase", async ({ page, context }) => {
     const { alice } = await setupTwoPlayerGame(page, context);
 
-    await expect(alice.getByText("Select up to", { exact: false })).toBeVisible();
+    await expect(alice.getByText("Choose up to", { exact: false })).toBeVisible();
     await expect(alice.getByPlaceholder("Type a word...")).toBeVisible();
   });
 

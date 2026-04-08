@@ -193,10 +193,42 @@ describe("selectWords", () => {
     ).toThrow("more than 3");
   });
 
-  it("throws for invalid words", () => {
+  it("accepts free-text words not in the word list", () => {
+    let state = setupSelecting();
+    state = selectWords(state, "p1", ["customword"]);
+    expect(state.players["p1"].selectedWords).toEqual(["customword"]);
+  });
+
+  it("accepts emoji words", () => {
+    let state = setupSelecting();
+    state = selectWords(state, "p1", ["hello", "🎉"]);
+    expect(state.players["p1"].selectedWords).toEqual(["hello", "🎉"]);
+  });
+
+  it("throws for words with spaces", () => {
     const state = setupSelecting();
-    expect(() => selectWords(state, "p1", ["NotAWord"])).toThrow(
-      "not in the word list",
+    expect(() => selectWords(state, "p1", ["hello world"])).toThrow(
+      "invalid characters",
+    );
+  });
+
+  it("throws for words with special characters", () => {
+    const state = setupSelecting();
+    expect(() => selectWords(state, "p1", ["hello!"])).toThrow(
+      "invalid characters",
+    );
+  });
+
+  it("throws for empty words", () => {
+    const state = setupSelecting();
+    expect(() => selectWords(state, "p1", [""])).toThrow("between 1 and 50");
+  });
+
+  it("throws for words exceeding max length", () => {
+    const state = setupSelecting();
+    const longWord = "a".repeat(51);
+    expect(() => selectWords(state, "p1", [longWord])).toThrow(
+      "between 1 and 50",
     );
   });
 

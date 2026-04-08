@@ -6,6 +6,7 @@
     "test": "pnpm -r --workspace-concurrency=1 run test",
     "dev:server": "pnpm --filter @ambotrope/server dev",
     "dev:web": "pnpm --filter @ambotrope/web dev",
+    "deploy:all": "AWS_PAGER= pnpm run deploy:server && AWS_PAGER= pnpm run deploy:web",
     "deploy:web": "./scripts/deploy-web.sh",
     "deploy:server": "./scripts/deploy-server.sh"
   },

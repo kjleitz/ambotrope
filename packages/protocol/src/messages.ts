@@ -20,7 +20,7 @@ const selectTileSchema = z.object({
 const selectWordsSchema = z.object({
   type: z.literal("select_words"),
   payload: z.object({
-    words: z.array(z.string()),
+    words: z.array(z.string().min(1).max(50)),
   }),
 });
 

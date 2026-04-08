@@ -134,10 +134,17 @@ export function selectWords(
       `Cannot select more than ${state.config.maxWordsPerPlayer} words`,
     );
   }
-  const wordListLower = state.config.wordList.map((w) => w.toLowerCase());
+  const WORD_PATTERN =
+    /^[\w\p{Emoji_Presentation}\p{Extended_Pictographic}]+$/u;
+  const MAX_WORD_LENGTH = 50;
   for (const word of words) {
-    if (!wordListLower.includes(word.toLowerCase())) {
-      throw new Error(`Word "${word}" is not in the word list`);
+    if (word.length === 0 || word.length > MAX_WORD_LENGTH) {
+      throw new Error(
+        `Word must be between 1 and ${MAX_WORD_LENGTH} characters`,
+      );
+    }
+    if (!WORD_PATTERN.test(word)) {
+      throw new Error(`Word "${word}" contains invalid characters`);
     }
   }
 

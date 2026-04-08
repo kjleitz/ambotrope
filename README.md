@@ -79,8 +79,9 @@ pnpm test          # Run all tests
 ### Deploying
 
 ```bash
-pnpm deploy:server   # Build, push to Lightsail, create deployment
-pnpm deploy:web      # Build frontend, sync to S3, invalidate CloudFront
+pnpm run deploy:all   # Deploy server + web (no pager)
+pnpm deploy:server    # Build, push to Lightsail, create deployment
+pnpm deploy:web       # Build frontend, sync to S3, invalidate CloudFront
 ```
 
 ## All pnpm Scripts
@@ -90,5 +91,6 @@ pnpm deploy:web      # Build frontend, sync to S3, invalidate CloudFront
 | `pnpm dev:server` | Start server in dev mode (tsx watch) |
 | `pnpm dev:web` | Start frontend dev server (Vite) |
 | `pnpm test` | Run all tests across all packages |
+| `pnpm run deploy:all` | Deploy server + web (no pager) |
 | `pnpm deploy:web` | Build and deploy frontend to S3/CloudFront |
 | `pnpm deploy:server` | Build, push image to Lightsail, create deployment |

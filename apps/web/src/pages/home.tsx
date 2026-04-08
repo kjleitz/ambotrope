@@ -66,6 +66,7 @@ export function HomePage() {
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); }}
             placeholder="Enter your name"
             maxLength={30}
             className="px-3 py-2 rounded-lg text-sm outline-none bg-surface-alt border border-border"
@@ -96,6 +97,7 @@ export function HomePage() {
               type="text"
               value={gameId}
               onChange={(e) => setGameId(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") handleJoin(); }}
               placeholder="Game code"
               className="flex-1 px-3 py-2 rounded-lg text-sm outline-none bg-surface-alt border border-border"
             />

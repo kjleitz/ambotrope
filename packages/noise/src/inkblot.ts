@@ -85,24 +85,27 @@ export interface InkBlotFieldConfig {
   vertices: Point[];
   /** Radius of each blot in world units */
   blobRadius: number;
-  /** Noise frequency for each blot shape. Default 1.5. */
-  frequency?: number;
+  /** Minimum noise frequency clamp for per-blot random frequency (raw range 0–10). Default 1.5. */
+  frequencyMin?: number;
+  /** Maximum noise frequency clamp for per-blot random frequency (raw range 0–10). Default 4.0. */
+  frequencyMax?: number;
   /** Center bias for each blot shape (0–1). Default 0.6. */
   centerBias?: number;
-  /** Minimum sharpness for per-blot random sharpness. Default 1. */
+  /** Minimum sharpness clamp for per-blot random sharpness (raw range 0–10). Default 1. */
   sharpnessMin?: number;
-  /** Maximum sharpness for per-blot random sharpness. Default 1. */
+  /** Maximum sharpness clamp for per-blot random sharpness (raw range 0–10). Default 1. */
   sharpnessMax?: number;
 }
 
 export function createInkBlotField(config: InkBlotFieldConfig): NoiseField {
-  const { generator, vertices, blobRadius, frequency, centerBias, sharpnessMin = 1, sharpnessMax = 1 } = config;
+  const { generator, vertices, blobRadius, frequencyMin = 1.5, frequencyMax = 4.0, centerBias, sharpnessMin = 1, sharpnessMax = 1 } = config;
 
-  // Pre-create an ink blot shape and per-blot sharpness for each vertex
+  // Pre-create an ink blot shape with per-blot random sharpness and frequency for each vertex
   const blots: Array<{ blot: InkBlotShape; center: Point; sharpness: number }> = vertices.map((v, i) => {
     const seed = v.x * 7.31 + v.y * 13.97 + i * 0.01;
     const rng = seededRandom(seed);
-    const sharpness = sharpnessMin + rng() * (sharpnessMax - sharpnessMin);
+    const sharpness = Math.min(sharpnessMax, Math.max(sharpnessMin, rng() * 10));
+    const frequency = Math.min(frequencyMax, Math.max(frequencyMin, rng() * 10));
     return {
       blot: createInkBlotShape({ generator, radius: blobRadius, seed, frequency, centerBias }),
       center: v,

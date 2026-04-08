@@ -20,6 +20,12 @@ export interface CloudParams {
   sharpnessMin: number;
   /** Maximum edge sharpness for the seeded random range. */
   sharpnessMax: number;
+  /** Minimum noise frequency for per-blot random frequency. Lower = blobber, higher = more tendrils. Default 1.5. */
+  frequencyMin: number;
+  /** Maximum noise frequency for per-blot random frequency. Default 4.0. */
+  frequencyMax: number;
+  /** How much the radial falloff biases toward the center (0–1). Higher = rounder, lower = more sprawl. Default 0.6. */
+  centerBias: number;
   /** RGB color for clouds [r, g, b] each 0-255 */
   cloudColor: [number, number, number];
   /** CSS color string for the sky/background */
@@ -31,6 +37,9 @@ export const defaultCloudParams: CloudParams = {
   levels: 2,
   sharpnessMin: 2.0,
   sharpnessMax: 3.5,
+  frequencyMin: 1.5,
+  frequencyMax: 2.5,
+  centerBias: 0.6,
   cloudColor: [255, 255, 255],
   skyColor: "#87CEEB",
 };
@@ -68,6 +77,9 @@ export function createRenderState(
         blobRadius: hexSize * 1.5,
         sharpnessMin: cloudParams?.sharpnessMin,
         sharpnessMax: cloudParams?.sharpnessMax,
+        frequencyMin: cloudParams?.frequencyMin,
+        frequencyMax: cloudParams?.frequencyMax,
+        centerBias: cloudParams?.centerBias,
       })
     : createNoiseField({
         generator,

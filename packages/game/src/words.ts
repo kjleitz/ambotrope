@@ -33,6 +33,7 @@ export const DEFAULT_WORD_LIST: string[] = [
   "cyclops",
   "deepsea",
   "dementor",
+  "demon",
   "disappointed",
   "dogface",
   "dreidel",

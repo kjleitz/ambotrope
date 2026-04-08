@@ -13,7 +13,7 @@ function SelectingDescription({ step }: { step: PlayerStep }) {
 
   return (
     <>
-      <strong>Objective:</strong> CHOOSE A TILE NO ONE ELSE HAS CHOSEN.{" "}
+      <strong>Objective:</strong> NO TWO PLAYERS CHOOSE THE SAME TILE.{" "}
       <span className={step === "choose-tile" ? highlight : undefined}>
         <strong>Step 1:</strong> Choose a tile.
       </span>{" "}

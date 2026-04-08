@@ -46,5 +46,8 @@ infra/.terraform.lock.hcl
 # pnpm
 .pnpm-store
 
+# Playwright
+test-results/
+
 # OS
 .DS_Store

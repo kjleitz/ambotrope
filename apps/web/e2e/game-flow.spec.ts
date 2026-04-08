@@ -180,10 +180,10 @@ test.describe("selecting phase", () => {
   test("step 1 is highlighted before selecting a tile", async ({ page, context }) => {
     const { alice } = await setupTwoPlayerGame(page, context);
 
-    const step1 = alice.locator("text=Step 1: Choose a tile.").locator("..");
+    const step1 = alice.locator("strong", { hasText: "Step 1:" }).locator("..");
     await expect(step1).toHaveClass(/bg-yellow/, { timeout: 3000 });
 
-    const step2 = alice.locator("text=Step 2: Pick 3 words").locator("..");
+    const step2 = alice.locator("strong", { hasText: "Step 2:" }).locator("..");
     await expect(step2).toHaveClass(/opacity-40/);
   });
 
@@ -193,10 +193,10 @@ test.describe("selecting phase", () => {
     await clickTile(alice, 0, 0);
     await expect(alice.getByText("Tile selected")).toBeVisible({ timeout: 3000 });
 
-    const step2 = alice.locator("text=Step 2: Pick 3 words").locator("..");
+    const step2 = alice.locator("strong", { hasText: "Step 2:" }).locator("..");
     await expect(step2).toHaveClass(/bg-yellow/, { timeout: 3000 });
 
-    const step1 = alice.locator("text=Step 1: Choose a tile.").locator("..");
+    const step1 = alice.locator("strong", { hasText: "Step 1:" }).locator("..");
     await expect(step1).not.toHaveClass(/bg-yellow/);
     await expect(step1).not.toHaveClass(/opacity-40/);
   });
@@ -214,11 +214,11 @@ test.describe("selecting phase", () => {
       await wordButtons.nth(i).click();
     }
 
-    const step3 = alice.locator("text=Step 3: Look at the words").locator("..");
+    const step3 = alice.locator("strong", { hasText: "Step 3:" }).locator("..");
     await expect(step3).toHaveClass(/bg-yellow/, { timeout: 3000 });
 
     // Steps after step 3 should NOT be muted
-    const step4 = alice.locator("text=Step 4: Switch your tile").locator("..");
+    const step4 = alice.locator("strong", { hasText: "Step 4:" }).locator("..");
     await expect(step4).not.toHaveClass(/opacity-40/);
   });
 

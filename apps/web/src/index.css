@@ -156,6 +156,13 @@
   }
 }
 
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+  cursor: not-allowed;
+}
+
 body {
   margin: 0;
   font-family: var(--font-sans);

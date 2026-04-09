@@ -1,4 +1,5 @@
 import type { GamePhase } from "@ambotrope/game";
+import { Tooltip } from "@/components/Tooltip.tsx";
 
 const PHASE_LABELS: Record<GamePhase, string> = {
   selecting: "Choose your tile & words",
@@ -71,14 +72,19 @@ export function PhaseBar({ phase, round, onReady, othersReady, onLockIn, canLock
         </div>
         <div className="flex gap-2">
           {onLockIn && (
-            <button
-              onClick={onLockIn}
-              disabled={!canLockIn}
-              className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors bg-success"
-              style={{ opacity: canLockIn ? 1 : 0.5, cursor: canLockIn ? "pointer" : "default" }}
+            <Tooltip
+              text={!canLockIn ? (!selectedTile ? "Select a tile first" : selectedWordCount === 0 ? "Choose at least one word" : undefined) : undefined}
+              position="bottom"
             >
-              Lock&nbsp;in
-            </button>
+              <button
+                onClick={onLockIn}
+                disabled={!canLockIn}
+                className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors bg-success"
+                style={{ opacity: canLockIn ? 1 : 0.5, cursor: canLockIn ? "pointer" : "default" }}
+              >
+                Lock&nbsp;in
+              </button>
+            </Tooltip>
           )}
           {onReady && (
             <button

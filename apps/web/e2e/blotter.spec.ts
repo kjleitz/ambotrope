@@ -41,7 +41,7 @@ test.describe("blotter page", () => {
     expect(text).toContain("tiles: 19");
     expect(text).toContain("strategy: ink-blot");
     expect(text).toContain("frequencyMin: 1.5");
-    expect(text).toContain("frequencyMax: 4");
+    expect(text).toContain("frequencyMax: 2.5");
     expect(text).toContain("centerBias: 0.6");
   });
 

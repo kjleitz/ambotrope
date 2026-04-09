@@ -152,7 +152,7 @@ export function GamePage() {
           onReady={phase === "reveal" && !gameView.self.readyForNext ? ready : undefined}
           othersReady={phase === "reveal" && gameView.others.some((o) => o.readyForNext)}
           onLockIn={showLockIn ? lockIn : undefined}
-          canLockIn={!!gameView.self.selectedTile}
+          canLockIn={!!gameView.self.selectedTile && gameView.self.selectedWords.length > 0}
           selectedTile={gameView.self.selectedTile}
           selectedWordCount={gameView.self.selectedWords.length}
           maxWords={gameView.config.maxWordsPerPlayer}

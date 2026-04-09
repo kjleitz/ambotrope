@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Tooltip } from "@/components/Tooltip.tsx";
 
 interface WordSelectorProps {
   wordList: string[];
@@ -20,6 +21,22 @@ export function WordSelector({ wordList, maxWords, selectedWords, onToggle, disa
 
   const selected = new Set(selectedWords.map((w) => w.toLowerCase()));
   const atMax = selected.size >= maxWords;
+
+  const inputDisabled = disabled || atMax;
+  const inputTooltip = disabled
+    ? "You're locked in"
+    : atMax
+      ? `Already chose ${maxWords} words`
+      : undefined;
+
+  const submitDisabled = disabled || !inputValue.trim() || atMax || selected.has(inputValue.toLowerCase());
+  const submitTooltip = disabled
+    ? "You're locked in"
+    : atMax
+      ? `Already chose ${maxWords} words`
+      : selected.has(inputValue.toLowerCase())
+        ? "Word already chosen"
+        : undefined;
 
   function submitWord() {
     const word = inputValue.trim();
@@ -49,33 +66,37 @@ export function WordSelector({ wordList, maxWords, selectedWords, onToggle, disa
 
       {/* Input row */}
       <div className="flex items-center gap-2">
-        <input
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(sanitizeInput(e.target.value))}
-          onKeyDown={(e) => { if (e.key === "Enter") submitWord(); }}
-          placeholder="Type a word..."
-          disabled={disabled || atMax}
-          maxLength={50}
-          autoFocus
-          className="px-3 py-1.5 rounded-lg text-sm outline-none border border-border min-w-0"
-          style={{ maxWidth: "20em", background: disabled || atMax ? "var(--color-surface)" : "var(--color-surface-alt)", opacity: disabled || atMax ? 0.5 : 1 }}
-        />
-        <button
-          onClick={submitWord}
-          disabled={disabled || !inputValue.trim() || atMax || selected.has(inputValue.toLowerCase())}
-          className="px-3 py-1.5 rounded-lg text-sm font-medium text-white transition-colors whitespace-nowrap"
-          style={{
-            background: disabled || !inputValue.trim() || atMax || selected.has(inputValue.toLowerCase())
-              ? "var(--color-text-muted)"
-              : "var(--color-primary)",
-            cursor: disabled || !inputValue.trim() || atMax || selected.has(inputValue.toLowerCase())
-              ? "not-allowed"
-              : "pointer",
-          }}
-        >
-          Submit
-        </button>
+        <Tooltip text={inputTooltip}>
+          <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(sanitizeInput(e.target.value))}
+            onKeyDown={(e) => { if (e.key === "Enter") submitWord(); }}
+            placeholder="Type a word..."
+            disabled={inputDisabled}
+            maxLength={50}
+            autoFocus
+            className="px-3 py-1.5 rounded-lg text-sm outline-none border border-border min-w-0"
+            style={{ maxWidth: "20em", background: inputDisabled ? "var(--color-surface)" : "var(--color-surface-alt)", opacity: inputDisabled ? 0.5 : 1 }}
+          />
+        </Tooltip>
+        <Tooltip text={submitTooltip}>
+          <button
+            onClick={submitWord}
+            disabled={submitDisabled}
+            className="px-3 py-1.5 rounded-lg text-sm font-medium text-white transition-colors whitespace-nowrap"
+            style={{
+              background: submitDisabled
+                ? "var(--color-text-muted)"
+                : "var(--color-primary)",
+              cursor: submitDisabled
+                ? undefined
+                : "pointer",
+            }}
+          >
+            Submit
+          </button>
+        </Tooltip>
         <button
           onClick={() => setShowInspiration((o) => !o)}
           disabled={disabled}
@@ -83,7 +104,7 @@ export function WordSelector({ wordList, maxWords, selectedWords, onToggle, disa
           style={{
             background: "var(--color-surface)",
             color: "var(--color-text)",
-            cursor: disabled ? "not-allowed" : "pointer",
+            cursor: disabled ? undefined : "pointer",
             opacity: disabled ? 0.5 : 1,
           }}
         >
@@ -153,24 +174,31 @@ export function WordSelector({ wordList, maxWords, selectedWords, onToggle, disa
         <div className="flex flex-wrap">
           {wordList.map((word) => {
             const isSelected = selected.has(word.toLowerCase());
+            const wordDisabled = disabled || (!isSelected && atMax);
+            const wordTooltip = disabled
+              ? "You're locked in"
+              : !isSelected && atMax
+                ? `Already chose ${maxWords} words`
+                : undefined;
             return (
-              <button
-                key={word}
-                onClick={() => toggleInspirationWord(word)}
-                disabled={disabled || (!isSelected && atMax)}
-                className={`word-btn-outer p-1 ${disabled || (!isSelected && atMax) ? "cursor-default" : "cursor-pointer"}`}
-              >
-                <span
-                  className={`word-btn inline-block px-3 py-1.5 text-sm transition-all ${isSelected ? "word-btn-selected" : ""}`}
-                  style={{
-                    background: isSelected ? "var(--color-primary)" : "var(--color-surface)",
-                    color: isSelected ? "white" : "var(--color-text)",
-                    opacity: disabled || (!isSelected && atMax) ? 0.5 : 1,
-                  }}
+              <Tooltip key={word} text={wordTooltip}>
+                <button
+                  onClick={() => toggleInspirationWord(word)}
+                  disabled={wordDisabled}
+                  className={`word-btn-outer p-1 ${wordDisabled ? "cursor-default" : "cursor-pointer"}`}
                 >
-                  {word}
-                </span>
-              </button>
+                  <span
+                    className={`word-btn inline-block px-3 py-1.5 text-sm transition-all ${isSelected ? "word-btn-selected" : ""}`}
+                    style={{
+                      background: isSelected ? "var(--color-primary)" : "var(--color-surface)",
+                      color: isSelected ? "white" : "var(--color-text)",
+                      opacity: wordDisabled ? 0.5 : 1,
+                    }}
+                  >
+                    {word}
+                  </span>
+                </button>
+              </Tooltip>
             );
           })}
         </div>

@@ -126,6 +126,12 @@ test.describe("game join flow", () => {
     if (!box2) throw new Error("Canvas not found");
     await canvas2.click({ position: { x: box2.width / 2 + 60, y: box2.height / 2 } });
 
+    // Both select a word so lock-in is enabled
+    await page.getByPlaceholder("Type a word...").fill("apple");
+    await page.getByRole("button", { name: "Submit" }).click();
+    await page2.getByPlaceholder("Type a word...").fill("banana");
+    await page2.getByRole("button", { name: "Submit" }).click();
+
     // Both lock in — auto-reveals
     await page.getByRole("button", { name: "Lock In" }).click();
     await page2.getByRole("button", { name: "Lock In" }).click();

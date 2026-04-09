@@ -364,17 +364,72 @@ test.describe("refresh persistence", () => {
 });
 
 test.describe("lock in and reveal", () => {
-  test("lock in button is disabled without a tile selected", async ({ page, context }) => {
+  test("lock in button is disabled without a tile and word selected", async ({ page, context }) => {
     const { alice } = await setupTwoPlayerGame(page, context);
 
     const lockInBtn = alice.getByRole("button", { name: "Lock in" });
     await expect(lockInBtn).toBeVisible();
     await expect(lockInBtn).toBeDisabled();
 
-    // Select a tile — button should become enabled
+    // Select a tile — still disabled (no words yet)
     await clickTile(alice, 0, 0);
     await expect(alice.getByText("Tile selected")).toBeVisible({ timeout: 3000 });
+    await expect(lockInBtn).toBeDisabled();
+
+    // Select a word — now enabled
+    await typeWord(alice, "batman");
     await expect(lockInBtn).toBeEnabled();
+  });
+
+  test("disabled lock-in button shows tooltip on hover", async ({ page, context }) => {
+    const { alice } = await setupTwoPlayerGame(page, context);
+
+    // No tile selected — hover lock-in and check tooltip
+    const lockInBtn = alice.getByRole("button", { name: "Lock in" });
+    await lockInBtn.hover();
+    await expect(alice.getByText("Select a tile first")).toBeVisible({ timeout: 2000 });
+
+    // Select a tile but no words — tooltip changes
+    await clickTile(alice, 0, 0);
+    await expect(alice.getByText("Tile selected")).toBeVisible({ timeout: 3000 });
+    await lockInBtn.hover();
+    await expect(alice.getByText("Choose at least one word")).toBeVisible({ timeout: 2000 });
+
+    // Select a word — tooltip should not appear
+    await typeWord(alice, "batman");
+    await lockInBtn.hover();
+    await expect(alice.getByText("Select a tile first")).not.toBeVisible();
+    await expect(alice.getByText("Choose at least one word")).not.toBeVisible();
+  });
+
+  test("disabled word input shows tooltip on hover when at max words", async ({ page, context }) => {
+    const { alice } = await setupTwoPlayerGame(page, context);
+
+    await typeWord(alice, "one");
+    await typeWord(alice, "two");
+    await typeWord(alice, "three");
+
+    // Input should be disabled at max — hover shows tooltip
+    const input = alice.getByPlaceholder("Type a word...");
+    await input.hover();
+    await expect(alice.getByText("Already chose 3 words")).toBeVisible({ timeout: 2000 });
+  });
+
+  test("disabled inspiration words show tooltip on hover when at max words", async ({ page, context }) => {
+    const { alice } = await setupTwoPlayerGame(page, context);
+
+    await typeWord(alice, "one");
+    await typeWord(alice, "two");
+    await typeWord(alice, "three");
+
+    // Open inspiration panel
+    await alice.getByRole("button", { name: /Inspiration/ }).click();
+
+    // Hover a disabled inspiration word — should show tooltip
+    // The Tooltip wrapper div contains the disabled button
+    const disabledInspirationBtn = alice.locator("button.word-btn-outer:disabled").first();
+    await disabledInspirationBtn.hover();
+    await expect(alice.getByText("Already chose 3 words")).toBeVisible({ timeout: 2000 });
   });
 
   test("auto-reveals when all players lock in", async ({ page, context }) => {

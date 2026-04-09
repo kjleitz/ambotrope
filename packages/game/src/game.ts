@@ -1,6 +1,7 @@
 import type {
   GameConfig,
   GameState,
+  KickVoteView,
   PlayerState,
   PlayerView,
   RoundResult,
@@ -27,6 +28,7 @@ export function createGame(
     round: 1,
     baseSeed: config.seed,
     seedAdvances: 0,
+    activeKickVote: null,
   };
 }
 
@@ -254,7 +256,23 @@ export function getPlayerView(
       readyForNext: p.readyForNext,
       hasSelectedTile: p.selectedTile !== null,
       selectedTile: isReveal ? p.selectedTile : null,
+      connected: true, // server overrides this with actual connection state
     }));
+
+  let activeKickVote: KickVoteView | null = null;
+  if (state.activeKickVote) {
+    const target = state.players[state.activeKickVote.targetId];
+    const nonTargetCount = Object.keys(state.players).filter(
+      (id) => id !== state.activeKickVote!.targetId,
+    ).length;
+    activeKickVote = {
+      targetId: state.activeKickVote.targetId,
+      targetName: target?.name ?? "Unknown",
+      votesNeeded: nonTargetCount,
+      votesCast: state.activeKickVote.votes.length,
+      selfHasVoted: state.activeKickVote.votes.includes(playerId),
+    };
+  }
 
   return {
     id: state.id,
@@ -265,6 +283,101 @@ export function getPlayerView(
     seedAdvances: state.seedAdvances,
     self,
     others,
+    activeKickVote,
+  };
+}
+
+export function initiateKickVote(
+  state: GameState,
+  initiatorId: string,
+  targetId: string,
+): GameState {
+  if (!state.players[initiatorId]) {
+    throw new Error(`Player ${initiatorId} not found`);
+  }
+  if (!state.players[targetId]) {
+    throw new Error(`Player ${targetId} not found`);
+  }
+  if (initiatorId === targetId) {
+    throw new Error("Cannot kick yourself");
+  }
+  if (state.activeKickVote) {
+    throw new Error("A kick vote is already in progress");
+  }
+  // Need at least 2 non-target players for a vote to make sense
+  const otherPlayers = Object.keys(state.players).filter((id) => id !== targetId);
+  if (otherPlayers.length < 2) {
+    throw new Error("Not enough players to start a kick vote");
+  }
+
+  return {
+    ...state,
+    activeKickVote: {
+      targetId,
+      votes: [initiatorId],
+    },
+  };
+}
+
+export function castKickVote(
+  state: GameState,
+  voterId: string,
+): GameState {
+  if (!state.players[voterId]) {
+    throw new Error(`Player ${voterId} not found`);
+  }
+  if (!state.activeKickVote) {
+    throw new Error("No active kick vote");
+  }
+  if (voterId === state.activeKickVote.targetId) {
+    throw new Error("Cannot vote on your own kick");
+  }
+  if (state.activeKickVote.votes.includes(voterId)) {
+    throw new Error("Already voted");
+  }
+
+  return {
+    ...state,
+    activeKickVote: {
+      ...state.activeKickVote,
+      votes: [...state.activeKickVote.votes, voterId],
+    },
+  };
+}
+
+export function cancelKickVote(state: GameState): GameState {
+  return { ...state, activeKickVote: null };
+}
+
+export function isKickVoteUnanimous(state: GameState): boolean {
+  if (!state.activeKickVote) return false;
+  const nonTargetCount = Object.keys(state.players).filter(
+    (id) => id !== state.activeKickVote!.targetId,
+  ).length;
+  return state.activeKickVote.votes.length >= nonTargetCount;
+}
+
+export function executeKick(state: GameState): GameState {
+  if (!state.activeKickVote) {
+    throw new Error("No active kick vote");
+  }
+  const targetId = state.activeKickVote.targetId;
+  const target = state.players[targetId];
+  if (!target) {
+    throw new Error(`Target player ${targetId} not found`);
+  }
+
+  // Lock in the kicked player with whatever they have, then remove them
+  const updatedPlayers = { ...state.players };
+  updatedPlayers[targetId] = { ...target, lockedIn: true };
+
+  // Remove the kicked player
+  const { [targetId]: _, ...remaining } = updatedPlayers;
+
+  return {
+    ...state,
+    players: remaining,
+    activeKickVote: null,
   };
 }
 

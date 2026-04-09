@@ -12,6 +12,11 @@ import {
   startNewRound,
   getPlayerView,
   scoreRound,
+  initiateKickVote,
+  castKickVote,
+  cancelKickVote,
+  isKickVoteUnanimous,
+  executeKick,
   DEFAULT_WORD_LIST,
 } from "../index.js";
 import type { GameConfig, GameState } from "../index.js";
@@ -373,5 +378,92 @@ describe("scoreRound", () => {
   it("throws in wrong phase", () => {
     const state = setupSelecting();
     expect(() => scoreRound(state)).toThrow();
+  });
+});
+
+describe("kick voting", () => {
+  it("initiates a kick vote", () => {
+    const state = initiateKickVote(setupSelecting(), "p1", "p2");
+    expect(state.activeKickVote).not.toBeNull();
+    expect(state.activeKickVote!.targetId).toBe("p2");
+    expect(state.activeKickVote!.votes).toEqual(["p1"]);
+  });
+
+  it("throws if kicking yourself", () => {
+    expect(() => initiateKickVote(setupSelecting(), "p1", "p1")).toThrow("yourself");
+  });
+
+  it("throws if a vote is already in progress", () => {
+    let state = initiateKickVote(setupSelecting(), "p1", "p2");
+    expect(() => initiateKickVote(state, "p3", "p2")).toThrow("already in progress");
+  });
+
+  it("throws if not enough players", () => {
+    let state = createGame("g1", TEST_CONFIG, TEST_TILES);
+    state = addPlayer(state, "p1", "Alice");
+    state = addPlayer(state, "p2", "Bob");
+    expect(() => initiateKickVote(state, "p1", "p2")).toThrow("Not enough players");
+  });
+
+  it("casts a vote", () => {
+    let state = initiateKickVote(setupSelecting(), "p1", "p2");
+    state = castKickVote(state, "p3");
+    expect(state.activeKickVote!.votes).toEqual(["p1", "p3"]);
+  });
+
+  it("throws if target votes", () => {
+    let state = initiateKickVote(setupSelecting(), "p1", "p2");
+    expect(() => castKickVote(state, "p2")).toThrow("own kick");
+  });
+
+  it("throws if already voted", () => {
+    let state = initiateKickVote(setupSelecting(), "p1", "p2");
+    expect(() => castKickVote(state, "p1")).toThrow("Already voted");
+  });
+
+  it("detects unanimous vote", () => {
+    let state = initiateKickVote(setupSelecting(), "p1", "p2");
+    expect(isKickVoteUnanimous(state)).toBe(false);
+    state = castKickVote(state, "p3");
+    expect(isKickVoteUnanimous(state)).toBe(true);
+  });
+
+  it("executes kick and removes player", () => {
+    let state = initiateKickVote(setupSelecting(), "p1", "p2");
+    state = castKickVote(state, "p3");
+    state = executeKick(state);
+    expect(state.players["p2"]).toBeUndefined();
+    expect(state.activeKickVote).toBeNull();
+    expect(Object.keys(state.players)).toHaveLength(2);
+  });
+
+  it("cancels a kick vote", () => {
+    let state = initiateKickVote(setupSelecting(), "p1", "p2");
+    state = cancelKickVote(state);
+    expect(state.activeKickVote).toBeNull();
+  });
+
+  it("includes kick vote in player view", () => {
+    let state = initiateKickVote(setupSelecting(), "p1", "p2");
+    const view1 = getPlayerView(state, "p1");
+    expect(view1.activeKickVote).not.toBeNull();
+    expect(view1.activeKickVote!.targetName).toBe("Bob");
+    expect(view1.activeKickVote!.selfHasVoted).toBe(true);
+    expect(view1.activeKickVote!.votesCast).toBe(1);
+    expect(view1.activeKickVote!.votesNeeded).toBe(2);
+
+    const view3 = getPlayerView(state, "p3");
+    expect(view3.activeKickVote!.selfHasVoted).toBe(false);
+  });
+
+  it("kick unblocks allLockedIn when remaining players are locked", () => {
+    let state = setupSelecting();
+    state = lockIn(state, "p1");
+    state = lockIn(state, "p3");
+    // p2 not locked in; kick p2
+    state = initiateKickVote(state, "p1", "p2");
+    state = castKickVote(state, "p3");
+    state = executeKick(state);
+    expect(allLockedIn(state)).toBe(true);
   });
 });

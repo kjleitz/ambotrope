@@ -147,6 +147,17 @@ export function useGameSocket(gameId: string, playerName: string | null) {
     [send],
   );
 
+  const initiateKick = useCallback(
+    (targetId: string) => {
+      send({ type: "initiate_kick", payload: { targetId } });
+    },
+    [send],
+  );
+
+  const voteKick = useCallback(() => send({ type: "vote_kick" }), [send]);
+
+  const cancelKick = useCallback(() => send({ type: "cancel_kick" }), [send]);
+
   return {
     ...state,
     selectTile,
@@ -154,5 +165,8 @@ export function useGameSocket(gameId: string, playerName: string | null) {
     lockIn,
     ready,
     changeSeed,
+    initiateKick,
+    voteKick,
+    cancelKick,
   };
 }

@@ -15,6 +15,11 @@ import {
   startNewRound,
   getPlayerView,
   scoreRound,
+  initiateKickVote,
+  castKickVote,
+  cancelKickVote,
+  isKickVoteUnanimous,
+  executeKick,
   DEFAULT_GAME_CONFIG,
   DEFAULT_WORD_LIST,
 } from "@ambotrope/game";
@@ -58,7 +63,15 @@ function sendGameStateToAll(room: Room): void {
   for (const conn of room.connections.values()) {
     try {
       const view = getPlayerView(room.gameState, conn.playerId);
-      sendToPlayer(conn, { type: "game_state", payload: view });
+      // Augment with actual connection status
+      const augmented = {
+        ...view,
+        others: view.others.map((o) => ({
+          ...o,
+          connected: room.connections.has(o.id),
+        })),
+      };
+      sendToPlayer(conn, { type: "game_state", payload: augmented });
     } catch {
       // Player may have been removed
     }
@@ -110,6 +123,39 @@ function growGridIfNeeded(room: Room): void {
 
   const grid = createGameGrid({ tileCount: targetTileCount, hexSize: HEX_SIZE });
   room.gameState = { ...room.gameState, tileIds: grid.tileIds };
+}
+
+function resolveKick(room: Room): void {
+  const vote = room.gameState.activeKickVote;
+  if (!vote) return;
+  const targetName = room.gameState.players[vote.targetId]?.name ?? "Unknown";
+  const targetId = vote.targetId;
+
+  room.gameState = executeKick(room.gameState);
+
+  // Close the kicked player's connection if they have one
+  const kickedConn = room.connections.get(targetId);
+  if (kickedConn) {
+    room.connections.delete(targetId);
+    kickedConn.ws.close();
+  }
+
+  broadcastToRoom(room, {
+    type: "player_kicked",
+    payload: { playerId: targetId, name: targetName },
+  });
+
+  // Check if the kick unblocked a lock-in or ready check
+  if (room.gameState.phase === "selecting" && allLockedIn(room.gameState)) {
+    room.gameState = revealRound(room.gameState);
+    broadcastToRoom(room, { type: "phase_changed", payload: { phase: "reveal" } });
+    const result = scoreRound(room.gameState);
+    broadcastToRoom(room, { type: "round_result", payload: result });
+  } else if (room.gameState.phase === "reveal" && allReady(room.gameState)) {
+    room.gameState = startNewRound(room.gameState);
+    growGridIfNeeded(room);
+    broadcastToRoom(room, { type: "phase_changed", payload: { phase: "selecting" } });
+  }
 }
 
 function scheduleRoomCleanup(gameId: string): void {
@@ -176,10 +222,18 @@ export function handleConnection(gameId: string, ws: WSContext): {
     if (playerId) {
       room.connections.delete(playerId);
 
+      // Cancel any active kick vote that involves this player as a voter
+      // (keep votes targeting this player — others can still kick them)
+      if (room.gameState.activeKickVote && room.gameState.activeKickVote.votes.includes(playerId)) {
+        room.gameState = cancelKickVote(room.gameState);
+      }
+
       broadcastToRoom(room, {
         type: "player_left",
         payload: { playerId },
       });
+
+      sendGameStateToAll(room);
 
       if (room.connections.size === 0) {
         scheduleRoomCleanup(gameId);
@@ -294,6 +348,47 @@ function handleClientMessage(
           sendGameStateToAll(room);
         }
       }
+      break;
+    }
+
+    case "initiate_kick": {
+      const pid = getPlayerId();
+      if (!pid) throw new Error("Not joined");
+      room.gameState = initiateKickVote(room.gameState, pid, message.payload.targetId);
+
+      if (isKickVoteUnanimous(room.gameState)) {
+        resolveKick(room);
+      }
+
+      sendGameStateToAll(room);
+      break;
+    }
+
+    case "vote_kick": {
+      const pid = getPlayerId();
+      if (!pid) throw new Error("Not joined");
+      room.gameState = castKickVote(room.gameState, pid);
+
+      if (isKickVoteUnanimous(room.gameState)) {
+        resolveKick(room);
+      }
+
+      sendGameStateToAll(room);
+      break;
+    }
+
+    case "cancel_kick": {
+      const pid = getPlayerId();
+      if (!pid) throw new Error("Not joined");
+      if (!room.gameState.activeKickVote) {
+        throw new Error("No active kick vote");
+      }
+      // Only the initiator (first voter) can cancel
+      if (room.gameState.activeKickVote.votes[0] !== pid) {
+        throw new Error("Only the initiator can cancel a kick vote");
+      }
+      room.gameState = cancelKickVote(room.gameState);
+      sendGameStateToAll(room);
       break;
     }
   }

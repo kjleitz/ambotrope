@@ -79,6 +79,7 @@ describe("serverMessageSchema", () => {
           readyForNext: false,
         },
         others: [],
+        activeKickVote: null,
       },
     };
     expect(serverMessageSchema.parse(msg)).toEqual(msg);

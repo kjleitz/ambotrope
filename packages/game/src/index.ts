@@ -2,6 +2,8 @@ export type {
   GameConfig,
   GamePhase,
   GameState,
+  KickVote,
+  KickVoteView,
   PlayerState,
   PlayerView,
   RoundResult,
@@ -22,5 +24,10 @@ export {
   startNewRound,
   getPlayerView,
   scoreRound,
+  initiateKickVote,
+  castKickVote,
+  cancelKickVote,
+  isKickVoteUnanimous,
+  executeKick,
 } from "./game.js";
 export { DEFAULT_WORD_LIST, DEFAULT_DISABLED_WORDS } from "./words.js";

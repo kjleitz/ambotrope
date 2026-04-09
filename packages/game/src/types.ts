@@ -21,6 +21,11 @@ export interface PlayerState {
   readyForNext: boolean;
 }
 
+export interface KickVote {
+  targetId: string;
+  votes: string[]; // player IDs who voted to kick
+}
+
 export interface GameState {
   id: string;
   config: GameConfig;
@@ -30,6 +35,15 @@ export interface GameState {
   round: number;
   baseSeed: number;
   seedAdvances: number;
+  activeKickVote: KickVote | null;
+}
+
+export interface KickVoteView {
+  targetId: string;
+  targetName: string;
+  votesNeeded: number;
+  votesCast: number;
+  selfHasVoted: boolean;
 }
 
 export interface PlayerView {
@@ -48,7 +62,9 @@ export interface PlayerView {
     readyForNext: boolean;
     hasSelectedTile: boolean;
     selectedTile: TileId | null; // only populated in reveal phase
+    connected: boolean;
   }>;
+  activeKickVote: KickVoteView | null;
 }
 
 export interface RoundResult {

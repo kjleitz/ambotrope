@@ -39,6 +39,21 @@ const changeSeedSchema = z.object({
   }),
 });
 
+const initiateKickSchema = z.object({
+  type: z.literal("initiate_kick"),
+  payload: z.object({
+    targetId: z.string(),
+  }),
+});
+
+const voteKickSchema = z.object({
+  type: z.literal("vote_kick"),
+});
+
+const cancelKickSchema = z.object({
+  type: z.literal("cancel_kick"),
+});
+
 export const clientMessageSchema = z.discriminatedUnion("type", [
   joinSchema,
   selectTileSchema,
@@ -46,6 +61,9 @@ export const clientMessageSchema = z.discriminatedUnion("type", [
   lockInSchema,
   readySchema,
   changeSeedSchema,
+  initiateKickSchema,
+  voteKickSchema,
+  cancelKickSchema,
 ]);
 
 export type ClientMessage = z.infer<typeof clientMessageSchema>;
@@ -74,6 +92,7 @@ const playerViewOtherSchema = z.object({
   readyForNext: z.boolean(),
   hasSelectedTile: z.boolean(),
   selectedTile: z.string().nullable(),
+  connected: z.boolean(),
 });
 
 const gameConfigSchema = z.object({
@@ -82,6 +101,14 @@ const gameConfigSchema = z.object({
   wordList: z.array(z.string()),
   seed: z.number(),
   maxWordsPerPlayer: z.number(),
+});
+
+const kickVoteViewSchema = z.object({
+  targetId: z.string(),
+  targetName: z.string(),
+  votesNeeded: z.number(),
+  votesCast: z.number(),
+  selfHasVoted: z.boolean(),
 });
 
 const playerViewSchema = z.object({
@@ -93,6 +120,7 @@ const playerViewSchema = z.object({
   seedAdvances: z.number(),
   self: playerViewSelfSchema,
   others: z.array(playerViewOtherSchema),
+  activeKickVote: kickVoteViewSchema.nullable(),
 });
 
 const roundResultSchema = z.object({
@@ -134,6 +162,14 @@ const roundResultMessageSchema = z.object({
   payload: roundResultSchema,
 });
 
+const playerKickedSchema = z.object({
+  type: z.literal("player_kicked"),
+  payload: z.object({
+    playerId: z.string(),
+    name: z.string(),
+  }),
+});
+
 const errorMessageSchema = z.object({
   type: z.literal("error"),
   payload: z.object({
@@ -146,6 +182,7 @@ export const serverMessageSchema = z.discriminatedUnion("type", [
   phaseChangedSchema,
   playerJoinedSchema,
   playerLeftSchema,
+  playerKickedSchema,
   roundResultMessageSchema,
   errorMessageSchema,
 ]);

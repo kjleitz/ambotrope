@@ -219,6 +219,19 @@ test.describe("selecting phase", () => {
     await expect(selfCard.locator("span.rounded-full", { hasText: "batman" })).toBeVisible();
   });
 
+  test("pressing space submits the current word", async ({ page, context }) => {
+    const { alice } = await setupTwoPlayerGame(page, context);
+
+    const input = alice.getByPlaceholder("Type a word...");
+    await input.fill("batman");
+    await alice.keyboard.press("Space");
+
+    const selfCard = alice.locator(".rounded-lg").filter({ hasText: "You" });
+    await expect(selfCard.locator("span.rounded-full", { hasText: "batman" })).toBeVisible({ timeout: 3000 });
+    // Input should be cleared after submit
+    await expect(input).toHaveValue("");
+  });
+
   test("input strips special characters and lowercases", async ({ page, context }) => {
     const { alice } = await setupTwoPlayerGame(page, context);
 

@@ -71,7 +71,7 @@ export function WordSelector({ wordList, maxWords, selectedWords, onToggle, disa
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(sanitizeInput(e.target.value))}
-            onKeyDown={(e) => { if (e.key === "Enter") submitWord(); }}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") submitWord(); }}
             placeholder="Type a word..."
             disabled={inputDisabled}
             maxLength={50}

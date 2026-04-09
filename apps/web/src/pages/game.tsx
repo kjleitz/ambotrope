@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useGameSocket } from "@/lib/useGameSocket.ts";
 import { GameCanvas } from "@/components/GameCanvas.tsx";
@@ -7,6 +7,7 @@ import { PlayerPanel } from "@/components/PlayerPanel.tsx";
 import { PhaseBar } from "@/components/PhaseBar.tsx";
 import { RoundResult } from "@/components/RoundResult.tsx";
 import { DEFAULT_DISABLED_WORDS } from "@ambotrope/game";
+import { randomQuote } from "@/lib/quotes.ts";
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -34,6 +35,7 @@ export function GamePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const playerName = searchParams.get("name");
   const [nameInput, setNameInput] = useState("");
+  const quote = useMemo(() => randomQuote(), []);
   const [disabledWords, setDisabledWords] = useState<ReadonlySet<string>>(DEFAULT_DISABLED_WORDS);
   const [wordDebugOpen, setWordDebugOpen] = useState(false);
 
@@ -47,6 +49,9 @@ export function GamePage() {
     lockIn,
     ready,
     changeSeed,
+    initiateKick,
+    voteKick,
+    cancelKick,
   } = useGameSocket(gameId!, playerName);
 
   if (!playerName) {
@@ -63,6 +68,12 @@ export function GamePage() {
             <p className="text-sm text-text-muted">
               Enter your name to join game <span className="font-mono">{gameId}</span>
             </p>
+            <blockquote className="mt-2 text-sm text-text-muted italic whitespace-pre-line">
+              {quote.text}
+              <footer className="mt-1 not-italic text-xs">
+                — {quote.author}{quote.source ? <>, <cite>{quote.source}</cite></> : null}
+              </footer>
+            </blockquote>
           </div>
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">Your name</label>
@@ -227,7 +238,12 @@ export function GamePage() {
           )}
 
           {/* Player panel */}
-          <PlayerPanel gameView={gameView} />
+          <PlayerPanel
+            gameView={gameView}
+            onInitiateKick={initiateKick}
+            onVoteKick={voteKick}
+            onCancelKick={gameView.activeKickVote?.selfHasVoted && gameView.activeKickVote.votesCast === 1 ? cancelKick : undefined}
+          />
 
           {/* Round result */}
           {phase === "reveal" && (

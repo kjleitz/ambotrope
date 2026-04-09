@@ -1,40 +1,12 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-
-interface Quote {
-  text: string;
-  author: string;
-  source?: string;
-}
-
-const QUOTES: Quote[] = [
-  {
-    text: "The sky is now indelible ink,\nThe branches reft asunder;\nBut you and I we do not shrink;\nWe love the lovely thunder.",
-    author: "Ogden Nash",
-    source: "A Watched Example Never Boils",
-  },
-  {
-    text: "Let there be gall enough in thy ink, though thou write with a goose-pen, no matter.",
-    author: "William Shakespeare",
-    source: "Twelfth Night",
-  },
-  {
-    text: "This conference was worse than a Rorschach test: There\u2019s a meaningless inkblot, and the others ask you what you think you see, but when you tell them, they start arguing with you!",
-    author: "Richard Feynman",
-    source: "Surely You\u2019re Joking, Mr. Feynman!",
-  },
-  {
-    text: "I very much enjoyed your delightful explanation of the formation of meanders. It just happens that my wife had asked me about the \u201cteacup phenomenon\u201d a few days earlier, but I did not know a rational explanation. She says that she will never stir her tea again without thinking of you.",
-    author: "Erwin Schr\u00f6dinger to Albert Einstein",
-    source: "23 April 1926",
-  },
-];
+import { randomQuote } from "@/lib/quotes.ts";
 
 export function HomePage() {
   const [name, setName] = useState("");
   const [gameId, setGameId] = useState("");
   const navigate = useNavigate();
-  const quote = useMemo(() => QUOTES[Math.floor(Math.random() * QUOTES.length)], []);
+  const quote = useMemo(() => randomQuote(), []);
 
   function handleCreate() {
     if (!name.trim()) return;

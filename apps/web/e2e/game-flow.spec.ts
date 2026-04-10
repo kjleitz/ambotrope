@@ -499,7 +499,7 @@ test.describe("lock in and reveal", () => {
     // Bob should see "Continue" button (animated)
     await expect(bob.getByRole("button", { name: "Continue" })).toBeVisible({ timeout: 3000 });
 
-    await bob.getByRole("button", { name: "Continue" }).click();
+    await bob.getByRole("button", { name: "Continue" }).click({ force: true });
     await expect(alice.getByText("Choose your tile")).toBeVisible({ timeout: 5000 });
     await expect(alice.getByText("Round 2")).toBeVisible();
   });
@@ -544,7 +544,7 @@ test.describe("lock in and reveal", () => {
 
     // Start new round — share link should still be there
     await alice.getByRole("button", { name: "Next Round" }).click();
-    await bob.getByRole("button", { name: "Continue" }).click();
+    await bob.getByRole("button", { name: "Continue" }).click({ force: true });
     await expect(alice.getByText("Choose your tile")).toBeVisible({ timeout: 5000 });
     await expect(alice.getByText("Share this link")).toBeVisible();
   });

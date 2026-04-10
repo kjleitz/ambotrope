@@ -20,7 +20,7 @@ test.describe("quotes", () => {
     // Open the join page
     const page2 = await context.newPage();
     await page2.goto(gamePath);
-    await expect(page2.getByRole("heading", { name: "Join Game" })).toBeVisible();
+    await expect(page2.getByRole("heading", { name: "Ambotrope" })).toBeVisible();
     await expect(page2.locator("blockquote")).toBeVisible();
     await expect(page2.locator("blockquote footer")).toBeVisible();
   });

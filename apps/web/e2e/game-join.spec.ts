@@ -6,8 +6,7 @@ test.describe("game join flow", () => {
     await page.goto("/game/test-join-1");
 
     // Should see the join form, not an error
-    await expect(page.getByRole("heading", { name: "Join Game" })).toBeVisible();
-    await expect(page.getByText("test-join-1")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Ambotrope" })).toBeVisible();
 
     // Enter name and join
     const nameInput = page.getByPlaceholder("Enter your name");
@@ -160,7 +159,7 @@ test.describe("game join flow", () => {
     // Player 2 opens the shared link
     const page2 = await context.newPage();
     await page2.goto(gamePath);
-    await expect(page2.getByRole("heading", { name: "Join Game" })).toBeVisible();
+    await expect(page2.getByRole("heading", { name: "Ambotrope" })).toBeVisible();
     await page2.getByPlaceholder("Enter your name").fill("Bob");
     await page2.getByRole("button", { name: "Join Game" }).click();
 

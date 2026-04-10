@@ -54,6 +54,11 @@ export function PhaseBar({ phase, round, onReady, othersReady, onLockIn, canLock
 
   const nudgeRef = useRef<HTMLButtonElement>(null);
   const hoveringRef = useRef(false);
+  const hoverTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  // Horizontal points in nudge-rotate (6s): 0%, 29%, 50%, 79%, 100%
+  const ROTATE_DURATION = 6000;
+  const HORIZONTAL_MS = [0, 1740, 3000, 4740, 6000];
 
   const applyHover = useCallback(() => {
     const el = nudgeRef.current;
@@ -66,25 +71,39 @@ export function PhaseBar({ phase, round, onReady, othersReady, onLockIn, canLock
     hoveringRef.current = true;
     const el = nudgeRef.current;
     if (!el) return;
-    // Wait for the current rotate loop to finish, then switch
-    el.addEventListener("animationiteration", applyHover, { once: true });
+
+    // Find the nudge-rotate animation's current time
+    const rotateAnim = el.getAnimations().find(
+      (a): a is CSSAnimation => a instanceof CSSAnimation && a.animationName === "nudge-rotate"
+    );
+
+    if (!rotateAnim?.currentTime || typeof rotateAnim.currentTime !== "number") {
+      applyHover();
+      return;
+    }
+
+    const t = rotateAnim.currentTime % ROTATE_DURATION;
+    const nextHorizontal = HORIZONTAL_MS.find(p => p > t + 1) ?? ROTATE_DURATION;
+    const waitMs = nextHorizontal - t;
+
+    hoverTimerRef.current = setTimeout(() => {
+      if (hoveringRef.current) applyHover();
+    }, waitMs);
   }, [applyHover]);
 
   const handleMouseLeave = useCallback(() => {
     hoveringRef.current = false;
+    clearTimeout(hoverTimerRef.current);
     const el = nudgeRef.current;
     if (!el) return;
-    el.removeEventListener("animationiteration", applyHover);
     el.classList.remove("animate-nudge-hover");
     el.classList.add("animate-nudge");
-  }, [applyHover]);
+  }, []);
 
-  // Clean up listener on unmount
+  // Clean up timer on unmount
   useEffect(() => {
-    return () => {
-      nudgeRef.current?.removeEventListener("animationiteration", applyHover);
-    };
-  }, [applyHover]);
+    return () => clearTimeout(hoverTimerRef.current);
+  }, []);
   return (
     <div
       className="flex flex-col gap-3 px-4 py-3 rounded-xl bg-surface border border-border"

@@ -29,7 +29,7 @@ variable "server_port" {
 }
 
 variable "cors_origin" {
-  description = "CORS origin allowed by the game server"
+  description = "Comma-separated CORS origins allowed by the game server"
   type        = string
-  default     = "https://www.ambotrope.com"
+  default     = "https://www.ambotrope.com,https://ambotrope.com"
 }

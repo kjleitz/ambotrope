@@ -38,7 +38,7 @@ aws lightsail create-container-service-deployment \
       \"environment\": {
         \"NODE_ENV\": \"production\",
         \"PORT\": \"3000\",
-        \"CORS_ORIGIN\": \"https://www.ambotrope.com\"
+        \"CORS_ORIGIN\": \"https://www.ambotrope.com,https://ambotrope.com\"
       }
     }
   }" \

@@ -24,7 +24,7 @@ export function HomePage() {
       <div className="flex flex-col gap-6 p-8 rounded-2xl w-full max-w-sm bg-surface border border-border">
         <div className="flex flex-col gap-1">
           <h1 className="text-2xl font-bold">Ambotrope</h1>
-          <blockquote className="text-sm text-text-muted italic whitespace-pre-line">
+          <blockquote className="mt-2 text-sm text-text-muted italic whitespace-pre-line">
             {quote.text}
             <footer className="mt-1 not-italic text-xs">
               — {quote.author}{quote.source ? <>, <cite>{quote.source}</cite></> : null}
@@ -33,7 +33,6 @@ export function HomePage() {
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium">Your name</label>
           <input
             type="text"
             value={name}

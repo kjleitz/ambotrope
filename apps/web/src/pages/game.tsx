@@ -64,10 +64,7 @@ export function GamePage() {
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="flex flex-col gap-5 p-8 rounded-2xl w-full max-w-sm bg-surface border border-border">
           <div className="flex flex-col gap-1">
-            <h1 className="text-xl font-bold">Join Game</h1>
-            <p className="text-sm text-text-muted">
-              Enter your name to join game <span className="font-mono">{gameId}</span>
-            </p>
+            <h1 className="text-2xl font-bold">Ambotrope</h1>
             <blockquote className="mt-2 text-sm text-text-muted italic whitespace-pre-line">
               {quote.text}
               <footer className="mt-1 not-italic text-xs">
@@ -75,8 +72,8 @@ export function GamePage() {
               </footer>
             </blockquote>
           </div>
+
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium">Your name</label>
             <input
               type="text"
               value={nameInput}
@@ -88,17 +85,20 @@ export function GamePage() {
               className="px-3 py-2 rounded-lg text-sm outline-none bg-surface-alt border border-border"
             />
           </div>
-          <button
-            onClick={handleJoin}
-            disabled={!nameInput.trim()}
-            className="px-4 py-2.5 rounded-lg font-medium text-white transition-colors"
-            style={{
-              background: nameInput.trim() ? "var(--color-primary)" : "var(--color-text-muted)",
-              cursor: nameInput.trim() ? "pointer" : "not-allowed",
-            }}
-          >
-            Join Game
-          </button>
+
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={handleJoin}
+              disabled={!nameInput.trim()}
+              className="px-4 py-2.5 rounded-lg font-medium text-white transition-colors"
+              style={{
+                background: nameInput.trim() ? "var(--color-primary)" : "var(--color-text-muted)",
+                cursor: nameInput.trim() ? "pointer" : "not-allowed",
+              }}
+            >
+              Join Game
+            </button>
+          </div>
         </div>
       </div>
     );

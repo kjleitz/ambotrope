@@ -1,5 +1,6 @@
 import type { GamePhase } from "@ambotrope/game";
 import { Tooltip } from "@/components/Tooltip.tsx";
+import { useRef, useCallback, useEffect } from "react";
 
 const PHASE_LABELS: Record<GamePhase, string> = {
   selecting: "Choose your tile & words",
@@ -50,6 +51,40 @@ export function PhaseBar({ phase, round, onReady, othersReady, onLockIn, canLock
     !selectedTile ? "choose-tile" :
     selectedWordCount < maxWords ? "pick-words" :
     "review";
+
+  const nudgeRef = useRef<HTMLButtonElement>(null);
+  const hoveringRef = useRef(false);
+
+  const applyHover = useCallback(() => {
+    const el = nudgeRef.current;
+    if (!el) return;
+    el.classList.remove("animate-nudge");
+    el.classList.add("animate-nudge-hover");
+  }, []);
+
+  const handleMouseEnter = useCallback(() => {
+    hoveringRef.current = true;
+    const el = nudgeRef.current;
+    if (!el) return;
+    // Wait for the current rotate loop to finish, then switch
+    el.addEventListener("animationiteration", applyHover, { once: true });
+  }, [applyHover]);
+
+  const handleMouseLeave = useCallback(() => {
+    hoveringRef.current = false;
+    const el = nudgeRef.current;
+    if (!el) return;
+    el.removeEventListener("animationiteration", applyHover);
+    el.classList.remove("animate-nudge-hover");
+    el.classList.add("animate-nudge");
+  }, [applyHover]);
+
+  // Clean up listener on unmount
+  useEffect(() => {
+    return () => {
+      nudgeRef.current?.removeEventListener("animationiteration", applyHover);
+    };
+  }, [applyHover]);
   return (
     <div
       className="flex flex-col gap-3 px-4 py-3 rounded-xl bg-surface border border-border"
@@ -88,7 +123,10 @@ export function PhaseBar({ phase, round, onReady, othersReady, onLockIn, canLock
           )}
           {onReady && (
             <button
+              ref={othersReady ? nudgeRef : undefined}
               onClick={onReady}
+              onMouseEnter={othersReady ? handleMouseEnter : undefined}
+              onMouseLeave={othersReady ? handleMouseLeave : undefined}
               className={`px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors cursor-pointer ${othersReady ? "bg-success animate-nudge" : "bg-primary"}`}
             >
               {othersReady ? "Continue" : "Next Round"}

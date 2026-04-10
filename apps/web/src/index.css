@@ -177,24 +177,41 @@ body {
   flex-direction: column;
 }
 
-/* Nudge animation: pulse → rock → spin, cycling */
-@keyframes nudge {
-  /* pulse */
-  0% { transform: scale(1); }
-  8% { transform: scale(1.08); }
-  16% { transform: scale(1); }
-  /* rock */
-  16% { transform: rotate(0deg); }
-  24% { transform: rotate(3deg); }
-  32% { transform: rotate(-3deg); }
-  40% { transform: rotate(2deg); }
-  48% { transform: rotate(0deg); }
-  /* spin forward then backward */
-  48% { transform: rotate(0deg); }
-  74% { transform: rotate(360deg); }
-  100% { transform: rotate(0deg); }
+/* Nudge animation: pulse overlaps rotation */
+@keyframes nudge-pulse {
+  0%, 20%, 100% { scale: 1; }
+  10%           { scale: 1.08; }
+}
+
+@keyframes nudge-rotate {
+  /* wind up CCW, spin CW */
+  0%   { rotate: 0deg; }
+  4%   { rotate: -3deg; }
+  29%  { rotate: 360deg; }
+  /* wind up CW, spin CCW */
+  50%  { rotate: 0deg; }
+  54%  { rotate: 3deg; }
+  79%  { rotate: -360deg; }
+  /* back to start */
+  100% { rotate: 0deg; }
+}
+
+@keyframes nudge-wiggle {
+  0%, 100% { rotate: 0deg; }
+  25%      { rotate: 3deg; }
+  75%      { rotate: -3deg; }
 }
 
 .animate-nudge {
-  animation: nudge 3s ease-in-out infinite;
+  transition: scale 0.3s ease-out;
+  animation:
+    nudge-pulse 1.5s ease-in-out infinite,
+    nudge-rotate 6s ease-in-out infinite;
+}
+
+.animate-nudge-hover {
+  scale: 1.08;
+  transition: scale 0.3s ease-out;
+  animation:
+    nudge-wiggle 0.4s ease-in-out infinite;
 }

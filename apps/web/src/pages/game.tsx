@@ -4,10 +4,12 @@ import { useGameSocket } from "@/lib/useGameSocket.ts";
 import { GameCanvas } from "@/components/GameCanvas.tsx";
 import { WordSelector } from "@/components/WordSelector.tsx";
 import { PlayerPanel } from "@/components/PlayerPanel.tsx";
+import { MobilePlayerStrip } from "@/components/MobilePlayerStrip.tsx";
 import { PhaseBar } from "@/components/PhaseBar.tsx";
 import { RoundResult } from "@/components/RoundResult.tsx";
 import { DEFAULT_DISABLED_WORDS } from "@ambotrope/game";
 import { randomQuote } from "@/lib/quotes.ts";
+import { useIsMobile } from "@/lib/useIsMobile.ts";
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -38,6 +40,8 @@ export function GamePage() {
   const quote = useMemo(() => randomQuote(), []);
   const [disabledWords, setDisabledWords] = useState<ReadonlySet<string>>(DEFAULT_DISABLED_WORDS);
   const [wordDebugOpen, setWordDebugOpen] = useState(false);
+  const isMobile = useIsMobile();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const {
     gameView,
@@ -153,10 +157,21 @@ export function GamePage() {
     });
   }
 
+  const wordSelectorEl = phase === "selecting" && (
+    <WordSelector
+      wordList={activeWordList}
+      maxWords={gameView.config.maxWordsPerPlayer}
+      selectedWords={gameView.self.selectedWords}
+      onToggle={selectWords}
+      disabled={!canSelectWords}
+      mobile={isMobile}
+    />
+  );
+
   return (
     <div className="flex-1 flex flex-col h-dvh">
-      {/* Phase bar + word selector */}
-      <div className="p-3">
+      {/* Phase bar — word selector inside on desktop only */}
+      <div className="p-2 md:p-3">
         <PhaseBar
           phase={phase}
           round={gameView.round}
@@ -168,23 +183,27 @@ export function GamePage() {
           selectedWordCount={gameView.self.selectedWords.length}
           maxWords={gameView.config.maxWordsPerPlayer}
         >
-          {phase === "selecting" && (
-            <WordSelector
-              wordList={activeWordList}
-              maxWords={gameView.config.maxWordsPerPlayer}
-              selectedWords={gameView.self.selectedWords}
-              onToggle={selectWords}
-              disabled={!canSelectWords}
-            />
-          )}
+          {!isMobile && wordSelectorEl}
         </PhaseBar>
       </div>
 
+      {/* Mobile: compact player strip */}
+      {isMobile && (
+        <MobilePlayerStrip gameView={gameView} />
+      )}
+
+      {/* Error display — mobile only (desktop shows in sidebar) */}
+      {isMobile && error && (
+        <div className="mx-2 mb-1 p-2 rounded-lg text-sm bg-danger text-white">
+          {error}
+        </div>
+      )}
+
       {/* Main area */}
-      <div className="flex-1 flex min-h-0">
+      <div className="flex-1 flex flex-col md:flex-row min-h-0">
         {/* Canvas */}
-        <div className="flex-1 p-3 pt-0">
-          <div className="relative w-full h-full rounded-xl overflow-hidden border border-border">
+        <div className="flex-1 flex flex-col p-2 md:p-3 pt-0 min-h-0">
+          <div className="relative flex-1 min-h-0 rounded-xl overflow-hidden border border-border">
             <GameCanvas
               gameView={gameView}
               onTileClick={handleSelectTile}
@@ -215,9 +234,22 @@ export function GamePage() {
           </div>
         </div>
 
-        {/* Sidebar */}
-        <div className="w-72 flex flex-col gap-3 p-3 pt-0 overflow-y-auto">
-          {/* Game link — always visible so players can invite others */}
+        {/* Mobile: results area below canvas during reveal */}
+        {isMobile && phase === "reveal" && (
+          <div className="flex flex-col gap-2 p-2 overflow-y-auto" style={{ maxHeight: "45vh" }}>
+            <RoundResult gameView={gameView} messages={messages} />
+            <PlayerPanel
+              gameView={gameView}
+              onInitiateKick={initiateKick}
+              onVoteKick={voteKick}
+              onCancelKick={gameView.activeKickVote?.selfHasVoted && gameView.activeKickVote.votesCast === 1 ? cancelKick : undefined}
+            />
+          </div>
+        )}
+
+        {/* Desktop sidebar */}
+        <div className="hidden md:flex w-72 flex-col gap-3 p-3 pt-0 overflow-y-auto">
+          {/* Game link */}
           <div className="flex flex-col gap-1 p-3 rounded-lg bg-surface border border-border">
             <div className="flex items-center justify-between">
               <div className="text-xs font-medium text-text-muted">
@@ -291,6 +323,52 @@ export function GamePage() {
           </div>
         </div>
       </div>
+
+      {/* Mobile: word selector at bottom + overflow menu */}
+      {isMobile && (
+        <div className="flex flex-col gap-1 p-2 pt-0">
+          {wordSelectorEl}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-xs text-text-muted">
+              <span
+                className="w-2 h-2 rounded-full"
+                style={{ background: connected ? "var(--color-success)" : "var(--color-danger)" }}
+              />
+              {connected ? "Connected" : "Disconnected"}
+            </div>
+            <div className="relative">
+              <button
+                onClick={() => setMobileMenuOpen((o) => !o)}
+                className="p-2 rounded-lg text-xs text-text-muted"
+                style={{ background: "var(--color-surface-alt)" }}
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                  <circle cx="8" cy="3" r="1.5" />
+                  <circle cx="8" cy="8" r="1.5" />
+                  <circle cx="8" cy="13" r="1.5" />
+                </svg>
+              </button>
+              {mobileMenuOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setMobileMenuOpen(false)} />
+                  <div className="absolute bottom-full right-0 mb-1 z-50 flex flex-col gap-2 p-3 rounded-lg bg-surface border border-border shadow-lg" style={{ minWidth: "240px" }}>
+                    {/* Share link */}
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs font-medium text-text-muted">Share this link</div>
+                        <CopyButton text={`${window.location.origin}/game/${gameId}`} />
+                      </div>
+                      <div className="text-xs px-2 py-1.5 rounded font-mono select-all break-all bg-surface-alt">
+                        {window.location.origin}/game/{gameId}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

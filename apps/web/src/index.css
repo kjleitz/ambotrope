@@ -215,3 +215,16 @@ body {
   animation:
     nudge-wiggle 0.4s ease-in-out infinite;
 }
+
+/* Mobile: prevent pull-to-refresh in Chrome */
+@media (max-width: 767px) {
+  body {
+    overscroll-behavior: none;
+  }
+
+  /* Ink theme: reduce thick borders on mobile */
+  [data-theme="ink"] {
+    --border-width: 6px;
+    --border-width-focus: 6px;
+  }
+}

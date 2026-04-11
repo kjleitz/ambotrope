@@ -106,7 +106,7 @@ export function PhaseBar({ phase, round, onReady, othersReady, onLockIn, canLock
   }, []);
   return (
     <div
-      className="flex flex-col gap-3 px-4 py-3 rounded-xl bg-surface border border-border"
+      className="flex flex-col gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 rounded-xl bg-surface border border-border"
     >
       <div className="flex items-center justify-between">
         <div className="flex flex-col gap-0.5">
@@ -116,7 +116,7 @@ export function PhaseBar({ phase, round, onReady, othersReady, onLockIn, canLock
               Round {round}
             </span>
           </div>
-          <span className="text-sm text-text-muted">
+          <span className="hidden md:inline text-sm text-text-muted">
             {phase === "selecting" ? (
               <SelectingDescription step={step} />
             ) : (

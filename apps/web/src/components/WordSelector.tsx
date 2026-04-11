@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tooltip } from "@/components/Tooltip.tsx";
 
 interface WordSelectorProps {
@@ -7,6 +7,7 @@ interface WordSelectorProps {
   selectedWords: string[];
   onToggle: (words: string[]) => void;
   disabled: boolean;
+  mobile?: boolean;
 }
 
 const WORD_PATTERN = /[\w\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu;
@@ -15,9 +16,19 @@ function sanitizeInput(raw: string): string {
   return (raw.match(WORD_PATTERN) ?? []).join("").toLowerCase();
 }
 
-export function WordSelector({ wordList, maxWords, selectedWords, onToggle, disabled }: WordSelectorProps) {
+export function WordSelector({ wordList, maxWords, selectedWords, onToggle, disabled, mobile = false }: WordSelectorProps) {
   const [inputValue, setInputValue] = useState("");
   const [showInspiration, setShowInspiration] = useState(false);
+
+  // Close bottom sheet on Escape
+  useEffect(() => {
+    if (!mobile || !showInspiration) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowInspiration(false);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [mobile, showInspiration]);
 
   const selected = new Set(selectedWords.map((w) => w.toLowerCase()));
   const atMax = selected.size >= maxWords;
@@ -75,16 +86,16 @@ export function WordSelector({ wordList, maxWords, selectedWords, onToggle, disa
             placeholder="Type a word..."
             disabled={inputDisabled}
             maxLength={50}
-            autoFocus
-            className="px-3 py-1.5 rounded-lg text-sm outline-none border border-border min-w-0"
-            style={{ maxWidth: "20em", background: inputDisabled ? "var(--color-surface)" : "var(--color-surface-alt)", opacity: inputDisabled ? 0.5 : 1 }}
+            autoFocus={!mobile}
+            className={`rounded-lg outline-none border border-border min-w-0 ${mobile ? "px-3 py-2.5 text-base flex-1" : "px-3 py-1.5 text-sm"}`}
+            style={{ maxWidth: mobile ? undefined : "20em", background: inputDisabled ? "var(--color-surface)" : "var(--color-surface-alt)", opacity: inputDisabled ? 0.5 : 1 }}
           />
         </Tooltip>
         <Tooltip text={submitTooltip}>
           <button
             onClick={submitWord}
             disabled={submitDisabled}
-            className="px-3 py-1.5 rounded-lg text-sm font-medium text-white transition-colors whitespace-nowrap"
+            className={`rounded-lg font-medium text-white transition-colors whitespace-nowrap ${mobile ? "px-4 py-2.5 text-base" : "px-3 py-1.5 text-sm"}`}
             style={{
               background: submitDisabled
                 ? "var(--color-text-muted)"
@@ -100,7 +111,7 @@ export function WordSelector({ wordList, maxWords, selectedWords, onToggle, disa
         <button
           onClick={() => setShowInspiration((o) => !o)}
           disabled={disabled}
-          className="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-1"
+          className={`rounded-lg font-medium transition-colors whitespace-nowrap flex items-center gap-1 ${mobile ? "px-3 py-2.5 text-base" : "px-3 py-1.5 text-sm"}`}
           style={{
             background: "var(--color-surface)",
             color: "var(--color-text)",
@@ -169,8 +180,8 @@ export function WordSelector({ wordList, maxWords, selectedWords, onToggle, disa
         </div>
       )}
 
-      {/* Inspiration panel */}
-      {showInspiration && (
+      {/* Inspiration panel — inline on desktop, bottom sheet on mobile */}
+      {showInspiration && !mobile && (
         <div className="flex flex-wrap">
           {wordList.map((word) => {
             const isSelected = selected.has(word.toLowerCase());
@@ -201,6 +212,58 @@ export function WordSelector({ wordList, maxWords, selectedWords, onToggle, disa
               </Tooltip>
             );
           })}
+        </div>
+      )}
+      {mobile && showInspiration && (
+        <div className="fixed inset-0 z-50">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/40"
+            aria-hidden="true"
+            onClick={() => setShowInspiration(false)}
+          />
+          {/* Sheet */}
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Inspiration word list"
+            className="absolute bottom-0 left-0 right-0 bg-surface border-t border-border rounded-t-2xl"
+            style={{ maxHeight: "60vh" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Drag handle */}
+            <div className="flex justify-center py-2">
+              <div className="w-10 h-1 rounded-full bg-text-muted opacity-40" />
+            </div>
+            <div className="px-3 pb-2 text-sm font-medium text-text-muted">
+              Inspiration ({selected.size}/{maxWords})
+            </div>
+            <div className="flex flex-wrap gap-1 px-3 pb-4 overflow-y-auto" style={{ maxHeight: "calc(60vh - 60px)" }}>
+              {wordList.map((word) => {
+                const isSelected = selected.has(word.toLowerCase());
+                const wordDisabled = disabled || (!isSelected && atMax);
+                return (
+                  <button
+                    key={word}
+                    onClick={() => toggleInspirationWord(word)}
+                    disabled={wordDisabled}
+                    className={`word-btn-outer p-1 ${wordDisabled ? "cursor-default" : "cursor-pointer"}`}
+                  >
+                    <span
+                      className={`word-btn inline-block px-4 py-2.5 text-base transition-all ${isSelected ? "word-btn-selected" : ""}`}
+                      style={{
+                        background: isSelected ? "var(--color-primary)" : "var(--color-surface-alt)",
+                        color: isSelected ? "white" : "var(--color-text)",
+                        opacity: wordDisabled ? 0.5 : 1,
+                      }}
+                    >
+                      {word}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       )}
     </div>

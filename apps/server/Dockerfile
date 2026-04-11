@@ -7,6 +7,8 @@ ENV PORT=3000
 
 RUN corepack enable
 
+RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
@@ -23,6 +25,10 @@ COPY packages/game packages/game
 COPY packages/grid packages/grid
 COPY packages/noise packages/noise
 COPY packages/protocol packages/protocol
+
+RUN chown -R appuser:appgroup /app /pnpm
+
+USER appuser
 
 EXPOSE 3000
 

@@ -55,12 +55,14 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
 
   const activeSeed = seedOverride ?? gameView.config.seed;
 
-  // Initialize render state when tile IDs or seed change
-  useEffect(() => {
+  // Initialize render state when tile IDs, seed, or canvas size change
+  const initCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const rect = canvas.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+
     const dpr = window.devicePixelRatio || 1;
     canvas.width = rect.width * dpr;
     canvas.height = rect.height * dpr;
@@ -76,6 +78,20 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
     renderStateRef.current = state;
     setRenderVersion((v) => v + 1);
   }, [gameView.tileIds, activeSeed, cloudParams]);
+
+  useEffect(() => {
+    initCanvas();
+  }, [initCanvas]);
+
+  // Re-initialize on container resize (orientation change, window resize)
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const observer = new ResizeObserver(() => initCanvas());
+    observer.observe(canvas);
+    return () => observer.disconnect();
+  }, [initCanvas]);
 
   // Render on every relevant change
   useEffect(() => {
@@ -154,60 +170,58 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
     return () => cancelAnimationFrame(animId);
   }, [gameView, hoveredTile, pressedTile, interactive, renderVersion, cloudParams]);
 
-  const handleMouseMove = useCallback(
-    (e: React.MouseEvent<HTMLCanvasElement>) => {
-      if (!interactive) return;
-      const state = renderStateRef.current;
-      if (!state) return;
-
+  const canvasCoords = useCallback(
+    (e: React.PointerEvent<HTMLCanvasElement>): { x: number; y: number } | null => {
       const canvas = canvasRef.current;
-      if (!canvas) return;
+      if (!canvas) return null;
       const rect = canvas.getBoundingClientRect();
-      const x = (e.clientX - rect.left) * (canvas.width / rect.width);
-      const y = (e.clientY - rect.top) * (canvas.height / rect.height);
-
-      const tile = hitTestTile(state, x, y);
-      setHoveredTile(tile);
+      return {
+        x: (e.clientX - rect.left) * (canvas.width / rect.width),
+        y: (e.clientY - rect.top) * (canvas.height / rect.height),
+      };
     },
-    [interactive],
+    [],
   );
 
-  const handleClick = useCallback(
-    (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent<HTMLCanvasElement>) => {
       if (!interactive) return;
       const state = renderStateRef.current;
       if (!state) return;
+      const coords = canvasCoords(e);
+      if (!coords) return;
+      setHoveredTile(hitTestTile(state, coords.x, coords.y));
+    },
+    [interactive, canvasCoords],
+  );
 
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const rect = canvas.getBoundingClientRect();
-      const x = (e.clientX - rect.left) * (canvas.width / rect.width);
-      const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent<HTMLCanvasElement>) => {
+      if (!interactive) return;
+      const state = renderStateRef.current;
+      if (!state) return;
+      const coords = canvasCoords(e);
+      if (!coords) return;
+      setPressedTile(hitTestTile(state, coords.x, coords.y));
+    },
+    [interactive, canvasCoords],
+  );
 
-      const tile = hitTestTile(state, x, y);
+  const handlePointerUp = useCallback(
+    (e: React.PointerEvent<HTMLCanvasElement>) => {
+      if (!interactive) return;
+      setPressedTile(null);
+      const state = renderStateRef.current;
+      if (!state) return;
+      const coords = canvasCoords(e);
+      if (!coords) return;
+      const tile = hitTestTile(state, coords.x, coords.y);
       if (tile) onTileClick(tile);
     },
-    [interactive, onTileClick],
+    [interactive, onTileClick, canvasCoords],
   );
 
-  const handleMouseDown = useCallback(
-    (e: React.MouseEvent<HTMLCanvasElement>) => {
-      if (!interactive) return;
-      const state = renderStateRef.current;
-      if (!state) return;
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const rect = canvas.getBoundingClientRect();
-      const x = (e.clientX - rect.left) * (canvas.width / rect.width);
-      const y = (e.clientY - rect.top) * (canvas.height / rect.height);
-      setPressedTile(hitTestTile(state, x, y));
-    },
-    [interactive],
-  );
-
-  const handleMouseUp = useCallback(() => setPressedTile(null), []);
-
-  const handleMouseLeave = useCallback(() => {
+  const handlePointerLeave = useCallback(() => {
     setHoveredTile(null);
     setPressedTile(null);
   }, []);
@@ -215,15 +229,15 @@ export function GameCanvas({ gameView, onTileClick, interactive }: GameCanvasPro
   const levelsLabel = cloudParams.levels < 2 ? "Continuous" : `${cloudParams.levels}`;
 
   return (
-    <div className="relative w-full h-full">
+    <div className="absolute inset-0">
       <canvas
         ref={canvasRef}
         className={`w-full h-full ${interactive ? "cursor-pointer" : ""}`}
-        onMouseMove={handleMouseMove}
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
-        onClick={handleClick}
-        onMouseLeave={handleMouseLeave}
+        style={{ touchAction: "none" }}
+        onPointerMove={handlePointerMove}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onPointerLeave={handlePointerLeave}
       />
       <div className="absolute top-2 left-2">
         <button

@@ -21,14 +21,19 @@ function truncateName(name: string, max = 8): string {
 
 export function MobilePlayerStrip({ gameView }: MobilePlayerStripProps) {
   const self = gameView.self;
-  const selfDot = statusDot(!!self.selectedTile, self.lockedIn, true);
+  const selfHasTile = !!self.selectedTile;
+  const selfDot = statusDot(selfHasTile, self.lockedIn, true);
 
   return (
     <div className="flex gap-1.5 px-3 py-1.5 overflow-x-auto md:hidden">
       {/* Self */}
       <div
-        className="flex flex-col gap-0.5 px-2 py-1 rounded-lg text-xs font-medium bg-surface shrink-0"
-        style={{ border: "2px solid var(--color-primary)" }}
+        className="flex flex-col gap-0.5 px-2 py-1 rounded-lg text-xs font-medium shrink-0"
+        style={{
+          border: "2px solid var(--color-primary)",
+          background: selfHasTile ? "var(--color-primary)" : "var(--color-surface)",
+          color: selfHasTile ? "white" : "var(--color-text)",
+        }}
       >
         <div className="flex items-center gap-1.5 whitespace-nowrap">
           <span
@@ -41,7 +46,15 @@ export function MobilePlayerStrip({ gameView }: MobilePlayerStripProps) {
         {self.selectedWords.length > 0 && (
           <div className="flex flex-wrap gap-0.5">
             {self.selectedWords.map((w) => (
-              <span key={w} className="px-1.5 py-0.5 rounded-full bg-surface-alt text-text" style={{ fontSize: "0.65rem" }}>
+              <span
+                key={w}
+                className="px-1.5 py-0.5 rounded-full"
+                style={{
+                  fontSize: "0.65rem",
+                  background: selfHasTile ? "rgba(255,255,255,0.25)" : "var(--color-surface-alt)",
+                  color: selfHasTile ? "white" : "var(--color-text)",
+                }}
+              >
                 {w}
               </span>
             ))}
@@ -52,11 +65,17 @@ export function MobilePlayerStrip({ gameView }: MobilePlayerStripProps) {
       {/* Others */}
       {gameView.others.map((player) => {
         const dot = statusDot(player.hasSelectedTile, player.lockedIn, player.connected);
+        const hasTile = player.hasSelectedTile;
         return (
           <div
             key={player.id}
-            className="flex flex-col gap-0.5 px-2 py-1 rounded-lg text-xs bg-surface border border-border shrink-0"
-            style={{ opacity: player.connected ? 1 : 0.6 }}
+            className="flex flex-col gap-0.5 px-2 py-1 rounded-lg text-xs shrink-0"
+            style={{
+              opacity: player.connected ? 1 : 0.6,
+              border: hasTile ? "2px solid var(--color-primary)" : "1px solid var(--color-border)",
+              background: hasTile ? "var(--color-primary)" : "var(--color-surface)",
+              color: hasTile ? "white" : "var(--color-text)",
+            }}
           >
             <div className="flex items-center gap-1.5 whitespace-nowrap">
               <span
@@ -69,7 +88,15 @@ export function MobilePlayerStrip({ gameView }: MobilePlayerStripProps) {
             {player.selectedWords.length > 0 && (
               <div className="flex flex-wrap gap-0.5">
                 {player.selectedWords.map((w) => (
-                  <span key={w} className="px-1.5 py-0.5 rounded-full bg-surface-alt text-text" style={{ fontSize: "0.65rem" }}>
+                  <span
+                    key={w}
+                    className="px-1.5 py-0.5 rounded-full"
+                    style={{
+                      fontSize: "0.65rem",
+                      background: hasTile ? "rgba(255,255,255,0.25)" : "var(--color-surface-alt)",
+                      color: hasTile ? "white" : "var(--color-text)",
+                    }}
+                  >
                     {w}
                   </span>
                 ))}

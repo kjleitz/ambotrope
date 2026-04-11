@@ -111,7 +111,14 @@ export function PhaseBar({ phase, round, onReady, othersReady, onLockIn, canLock
       <div className="flex items-center justify-between">
         <div className="flex flex-col gap-0.5">
           <div className="flex items-center gap-2">
-            <span className="font-semibold">{PHASE_LABELS[phase]}</span>
+            <span className="font-semibold">
+              <span className="hidden md:inline">{PHASE_LABELS[phase]}</span>
+              <span className="md:hidden">
+                {phase === "selecting"
+                  ? (selectedTile ? "Choose your words" : "Choose your tile")
+                  : PHASE_LABELS[phase]}
+              </span>
+            </span>
             <span className="text-xs px-2 py-0.5 rounded-full bg-surface-alt text-text-muted">
               Round {round}
             </span>

@@ -69,7 +69,7 @@ export function WordSelector({ wordList, maxWords, selectedWords, onToggle, disa
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2 overflow-hidden">
       {/* Header */}
       <span className="text-sm font-medium text-text-muted whitespace-nowrap">
         Choose up to {maxWords} words ({selected.size}/{maxWords})
@@ -77,25 +77,27 @@ export function WordSelector({ wordList, maxWords, selectedWords, onToggle, disa
 
       {/* Input row */}
       <div className="flex items-center gap-2">
-        <Tooltip text={inputTooltip}>
-          <input
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(sanitizeInput(e.target.value))}
-            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") submitWord(); }}
-            placeholder="Type a word..."
-            disabled={inputDisabled}
-            maxLength={50}
-            autoFocus={!mobile}
-            className={`rounded-lg outline-none border border-border min-w-0 ${mobile ? "px-3 py-2.5 text-base flex-1" : "px-3 py-1.5 text-sm"}`}
-            style={{ maxWidth: mobile ? undefined : "20em", background: inputDisabled ? "var(--color-surface)" : "var(--color-surface-alt)", opacity: inputDisabled ? 0.5 : 1 }}
-          />
-        </Tooltip>
+        <div className={mobile ? "flex-1 min-w-0" : "min-w-0"}>
+          <Tooltip text={inputTooltip}>
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(sanitizeInput(e.target.value))}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") submitWord(); }}
+              placeholder={mobile ? "Type a word" : "Type a word..."}
+              disabled={inputDisabled}
+              maxLength={50}
+              autoFocus={!mobile}
+              className={`rounded-lg outline-none border border-border min-w-0 w-full ${mobile ? "px-3 py-2 text-sm" : "px-3 py-1.5 text-sm"}`}
+              style={{ maxWidth: mobile ? undefined : "20em", background: inputDisabled ? "var(--color-surface)" : "var(--color-surface-alt)", opacity: inputDisabled ? 0.5 : 1 }}
+            />
+          </Tooltip>
+        </div>
         <Tooltip text={submitTooltip}>
           <button
             onClick={submitWord}
             disabled={submitDisabled}
-            className={`rounded-lg font-medium text-white transition-colors whitespace-nowrap ${mobile ? "px-4 py-2.5 text-base" : "px-3 py-1.5 text-sm"}`}
+            className={`rounded-lg font-medium text-white transition-colors whitespace-nowrap ${mobile ? "px-3 py-2 text-sm" : "px-3 py-1.5 text-sm"}`}
             style={{
               background: submitDisabled
                 ? "var(--color-text-muted)"
@@ -105,13 +107,13 @@ export function WordSelector({ wordList, maxWords, selectedWords, onToggle, disa
                 : "pointer",
             }}
           >
-            Submit
+            {mobile ? "+" : "Submit"}
           </button>
         </Tooltip>
         <button
           onClick={() => setShowInspiration((o) => !o)}
           disabled={disabled}
-          className={`rounded-lg font-medium transition-colors whitespace-nowrap flex items-center gap-1 ${mobile ? "px-3 py-2.5 text-base" : "px-3 py-1.5 text-sm"}`}
+          className={`rounded-lg font-medium transition-colors whitespace-nowrap flex items-center gap-1 ${mobile ? "px-3 py-2 text-sm" : "px-3 py-1.5 text-sm"}`}
           style={{
             background: "var(--color-surface)",
             color: "var(--color-text)",

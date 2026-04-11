@@ -14,8 +14,8 @@ async function clickTile(page: Page, offsetX = 0, offsetY = 0) {
 }
 
 async function typeWord(page: Page, word: string) {
-  await page.getByPlaceholder("Type a word...").fill(word);
-  await page.getByRole("button", { name: "Submit" }).click();
+  await page.getByPlaceholder("Type a word").fill(word);
+  await page.getByRole("button", { name: "+" }).click();
 }
 
 async function createGame(page: Page) {
@@ -59,7 +59,7 @@ test.describe("mobile layout", () => {
 
   test("word input is at the bottom of the screen", async ({ page }) => {
     await createGame(page);
-    const input = page.getByPlaceholder("Type a word...");
+    const input = page.getByPlaceholder("Type a word");
     await expect(input).toBeVisible();
     const inputBox = await input.boundingBox();
     expect(inputBox).toBeTruthy();
@@ -87,8 +87,8 @@ test.describe("mobile layout", () => {
     await createGame(page);
     // The selecting description text should be hidden
     await expect(page.getByText("Step 1:")).not.toBeVisible();
-    // But the phase label should still be visible
-    await expect(page.getByText("Choose your tile & words")).toBeVisible();
+    // On mobile with no tile selected, the phase label shows "Choose your tile"
+    await expect(page.getByText("Choose your tile", { exact: true })).toBeVisible();
   });
 
   test("Lock In button is visible and functional", async ({ page }) => {
@@ -202,7 +202,7 @@ test.describe("mobile reveal phase", () => {
     // Both lock in
     await alice.getByRole("button", { name: "Lock in" }).click();
     await bob.getByRole("button", { name: "Lock in" }).click();
-    await expect(alice.getByText("Results!")).toBeVisible({ timeout: 5000 });
+    await expect(alice.getByText("Results!").last()).toBeVisible({ timeout: 5000 });
     // Round result should be visible below the canvas
     await expect(alice.getByText("Round 1")).toBeVisible();
   });

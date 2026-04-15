@@ -17,6 +17,8 @@ interface OptimisticSelf {
 export function useGameSocket(gameId: string, playerName: string | null) {
   const wsRef = useRef<WebSocket | null>(null);
   const optimisticRef = useRef<OptimisticSelf>({ selectedTile: null, selectedWords: null });
+  // Holds the latest connect function so visibility/interval handlers always use current closure values.
+  const connectRef = useRef<(() => void) | null>(null);
   const [state, setState] = useState<GameSocketState>({
     gameView: null,
     connected: false,
@@ -27,68 +29,91 @@ export function useGameSocket(gameId: string, playerName: string | null) {
   useEffect(() => {
     if (!playerName) return;
 
-    const wsHost = import.meta.env.VITE_WS_HOST || window.location.host;
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${wsHost}/ws/${gameId}`;
-    const ws = new WebSocket(wsUrl);
-    wsRef.current = ws;
+    const connect = () => {
+      const existing = wsRef.current;
+      if (existing && (existing.readyState === WebSocket.OPEN || existing.readyState === WebSocket.CONNECTING)) {
+        return;
+      }
 
-    ws.addEventListener("open", () => {
-      setState((s) => ({ ...s, connected: true, error: null }));
-      ws.send(
-        JSON.stringify({
-          type: "join",
-          payload: { gameId, playerName },
-        }),
-      );
-    });
+      const wsHost = import.meta.env.VITE_WS_HOST || window.location.host;
+      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const wsUrl = `${protocol}//${wsHost}/ws/${gameId}`;
+      const ws = new WebSocket(wsUrl);
+      wsRef.current = ws;
 
-    ws.addEventListener("message", (evt) => {
-      const msg: ServerMessage = JSON.parse(evt.data);
-
-      setState((s) => {
-        const next = { ...s, messages: [...s.messages, msg] };
-
-        if (msg.type === "game_state") {
-          const serverView = msg.payload;
-          const opt = optimisticRef.current;
-
-          // Clear optimistic values once the server has caught up
-          if (opt.selectedTile !== null && serverView.self.selectedTile === opt.selectedTile) {
-            opt.selectedTile = null;
-          }
-          if (opt.selectedWords !== null && JSON.stringify(serverView.self.selectedWords) === JSON.stringify(opt.selectedWords)) {
-            opt.selectedWords = null;
-          }
-
-          // Overlay any remaining optimistic values onto the server state
-          const self = { ...serverView.self };
-          if (opt.selectedTile !== null) {
-            self.selectedTile = opt.selectedTile;
-          }
-          if (opt.selectedWords !== null) {
-            self.selectedWords = opt.selectedWords;
-          }
-
-          next.gameView = { ...serverView, self };
-        }
-        if (msg.type === "error") {
-          next.error = msg.payload.message;
-        }
-        return next;
+      ws.addEventListener("open", () => {
+        setState((s) => ({ ...s, connected: true, error: null }));
+        ws.send(
+          JSON.stringify({
+            type: "join",
+            payload: { gameId, playerName },
+          }),
+        );
       });
-    });
 
-    ws.addEventListener("close", () => {
-      setState((s) => ({ ...s, connected: false }));
-    });
+      ws.addEventListener("message", (evt) => {
+        const msg: ServerMessage = JSON.parse(evt.data);
 
-    ws.addEventListener("error", () => {
-      setState((s) => ({ ...s, error: "Connection error" }));
-    });
+        setState((s) => {
+          const next = { ...s, messages: [...s.messages, msg] };
+
+          if (msg.type === "game_state") {
+            const serverView = msg.payload;
+            const opt = optimisticRef.current;
+
+            // Clear optimistic values once the server has caught up
+            if (opt.selectedTile !== null && serverView.self.selectedTile === opt.selectedTile) {
+              opt.selectedTile = null;
+            }
+            if (opt.selectedWords !== null && JSON.stringify(serverView.self.selectedWords) === JSON.stringify(opt.selectedWords)) {
+              opt.selectedWords = null;
+            }
+
+            // Overlay any remaining optimistic values onto the server state
+            const self = { ...serverView.self };
+            if (opt.selectedTile !== null) {
+              self.selectedTile = opt.selectedTile;
+            }
+            if (opt.selectedWords !== null) {
+              self.selectedWords = opt.selectedWords;
+            }
+
+            next.gameView = { ...serverView, self };
+          }
+          if (msg.type === "error") {
+            next.error = msg.payload.message;
+          }
+          return next;
+        });
+      });
+
+      ws.addEventListener("close", () => {
+        setState((s) => ({ ...s, connected: false }));
+        if (wsRef.current === ws) wsRef.current = null;
+      });
+
+      ws.addEventListener("error", () => {
+        setState((s) => ({ ...s, error: "Connection error" }));
+      });
+    };
+
+    connectRef.current = connect;
+    connect();
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") connectRef.current?.();
+    };
+
+    // Reconnect immediately when the tab becomes visible again (e.g. after closing/opening laptop lid).
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    // Also poll every 5 seconds so a stale connection gets recovered without user action.
+    const intervalId = setInterval(() => connectRef.current?.(), 5_000);
 
     return () => {
-      ws.close();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      clearInterval(intervalId);
+      wsRef.current?.close();
       wsRef.current = null;
     };
   }, [gameId, playerName]);
